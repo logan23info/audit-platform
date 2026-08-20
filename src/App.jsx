@@ -44,6 +44,15 @@ import Scenarios from './pages/iso27005/Scenarios'
 import { ISO9001Clause5, ISO9001Clause7, ISO9001Clause8, ISO9001Clause9, ISO9001Clause10 } from './pages/iso9001/AllClauses'
 import { IMSCrosswalk, IMSWorksheets } from './pages/ims/AllPages'
 
+// Sprint 7 — Fieldwork
+import PBCList from './pages/fieldwork/PBCList'
+import FieldworkTracker from './pages/fieldwork/FieldworkTracker'
+import WorkpaperIndex from './pages/fieldwork/WorkpaperIndex'
+
+// Sprint 8 — Reporting
+import ReportBuilder from './pages/reporting/ReportBuilder'
+import { ManagementReview, KPIDashboard, CAPATracker, AuditUniverse } from './pages/reporting/AllReporting'
+
 import ComingSoon from './pages/ComingSoon'
 
 export default function App() {
@@ -59,14 +68,14 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
 
-              {/* Sprint 1 */}
+              {/* Sprint 1 — ISO 19011 Backbone */}
               <Route path="/iso19011/clause4" element={<Clause4 />} />
               <Route path="/iso19011/clause5" element={<Clause5 />} />
               <Route path="/iso19011/tod" element={<TOD />} />
               <Route path="/iso19011/toi" element={<TOI />} />
               <Route path="/iso19011/toe" element={<TOE />} />
 
-              {/* Sprint 2 */}
+              {/* Sprint 2 — ISO 19011 Cl. 6 & 7 */}
               <Route path="/iso19011/clause6-initiation" element={<Clause6Initiation />} />
               <Route path="/iso19011/clause6-preparation" element={<Clause6Preparation />} />
               <Route path="/iso19011/findings" element={<Findings />} />
@@ -106,6 +115,18 @@ export default function App() {
               {/* Sprint 6 — IMS Cross-Walk */}
               <Route path="/ims/crosswalk" element={<IMSCrosswalk />} />
               <Route path="/ims/worksheets" element={<IMSWorksheets />} />
+
+              {/* Sprint 7 — Fieldwork */}
+              <Route path="/fieldwork/pbc" element={<PBCList />} />
+              <Route path="/fieldwork/tracker" element={<FieldworkTracker />} />
+              <Route path="/fieldwork/workpapers" element={<WorkpaperIndex />} />
+
+              {/* Sprint 8 — Reporting */}
+              <Route path="/reporting/builder" element={<ReportBuilder />} />
+              <Route path="/reporting/management-review" element={<ManagementReview />} />
+              <Route path="/reporting/kpi" element={<KPIDashboard />} />
+              <Route path="/reporting/capa" element={<CAPATracker />} />
+              <Route path="/reporting/universe" element={<AuditUniverse />} />
 
               <Route path="*" element={<ComingSoon />} />
             </Routes>

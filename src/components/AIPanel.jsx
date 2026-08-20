@@ -14,17 +14,27 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
       if (inputs[f.id]) msg += `${f.label}: ${inputs[f.id]}\n`
     })
     if (inputs.query) msg += `\nRequest: ${inputs.query}`
-    return msg || inputs.query || 'Generate the artifact for this module.'
+    return msg || 'Generate the artifact for this module.'
   }
 
   const generate = async () => {
+    const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
+    if (!apiKey) {
+      setError('API key not configured. Add VITE_ANTHROPIC_API_KEY to Vercel → Settings → Environment Variables, then redeploy.')
+      return
+    }
     setLoading(true)
     setError('')
     setOutput('')
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-calls': 'true',
+        },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 1000,
@@ -32,17 +42,26 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
           messages: [{ role: 'user', content: buildUserMessage() }]
         })
       })
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err?.error?.message || `API error ${response.status}`)
+      }
       const data = await response.json()
       const text = data.content?.map(b => b.text || '').join('\n') || ''
       setOutput(text)
     } catch (e) {
-      setError('Failed to connect to AI engine. Please try again.')
+      if (e.message.includes('401')) {
+        setError('Invalid API key. Check VITE_ANTHROPIC_API_KEY in Vercel environment variables.')
+      } else if (e.message.includes('fetch') || e.message.includes('network')) {
+        setError('Network error — check your internet connection and try again.')
+      } else {
+        setError(`Error: ${e.message}. Check Vercel environment variables and redeploy.`)
+      }
     }
     setLoading(false)
   }
 
   const copy = () => navigator.clipboard.writeText(output)
-
   const download = () => {
     const blob = new Blob([output], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -55,10 +74,7 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
 
   return (
     <div className="ai-panel mt-6">
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between mb-0"
-      >
+      <button onClick={() => setCollapsed(!collapsed)} className="w-full flex items-center justify-between mb-0">
         <div className="flex items-center gap-2">
           <Sparkles size={15} className="text-amber-audit" />
           <span className="text-sm font-semibold text-white">{title}</span>
@@ -73,61 +89,29 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
             <div key={f.id}>
               <label className="block text-xs text-steel-400 mb-1">{f.label}</label>
               {f.type === 'textarea' ? (
-                <textarea
-                  className="textarea-field"
-                  rows={3}
-                  placeholder={f.placeholder}
-                  value={inputs[f.id] || ''}
-                  onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))}
-                />
+                <textarea className="textarea-field" rows={3} placeholder={f.placeholder} value={inputs[f.id] || ''} onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))} />
               ) : f.type === 'select' ? (
-                <select
-                  className="input-field"
-                  value={inputs[f.id] || ''}
-                  onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))}
-                >
+                <select className="input-field" value={inputs[f.id] || ''} onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))}>
                   <option value="">Select...</option>
                   {f.options?.map(o => <option key={o} value={o}>{o}</option>)}
                 </select>
               ) : (
-                <input
-                  className="input-field"
-                  type="text"
-                  placeholder={f.placeholder}
-                  value={inputs[f.id] || ''}
-                  onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))}
-                />
+                <input className="input-field" type="text" placeholder={f.placeholder} value={inputs[f.id] || ''} onChange={e => setInputs(p => ({ ...p, [f.id]: e.target.value }))} />
               )}
             </div>
           ))}
 
           <div>
             <label className="block text-xs text-steel-400 mb-1">Specific Request (optional)</label>
-            <textarea
-              className="textarea-field"
-              rows={2}
-              placeholder={placeholder}
-              value={inputs.query || ''}
-              onChange={e => setInputs(p => ({ ...p, query: e.target.value }))}
-            />
+            <textarea className="textarea-field" rows={2} placeholder={placeholder} value={inputs.query || ''} onChange={e => setInputs(p => ({ ...p, query: e.target.value }))} />
           </div>
 
-          <button
-            onClick={generate}
-            disabled={loading}
-            className="btn-primary w-full justify-center"
-          >
-            {loading ? (
-              <><Loader2 size={14} className="animate-spin" /> Generating...</>
-            ) : (
-              <><Send size={14} /> Generate Artifact</>
-            )}
+          <button onClick={generate} disabled={loading} className="btn-primary w-full justify-center">
+            {loading ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <><Send size={14} /> Generate Artifact</>}
           </button>
 
           {error && (
-            <div className="text-xs text-red-400 bg-red-900/20 border border-red-800 rounded-lg p-3">
-              {error}
-            </div>
+            <div className="text-xs text-red-400 bg-red-900/20 border border-red-800 rounded-lg p-3 leading-relaxed">{error}</div>
           )}
 
           {output && (
@@ -135,17 +119,11 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-steel-400 font-medium">Generated Output</span>
                 <div className="flex gap-2">
-                  <button onClick={copy} className="btn-secondary py-1 px-2.5 text-xs">
-                    <Copy size={11} /> Copy
-                  </button>
-                  <button onClick={download} className="btn-secondary py-1 px-2.5 text-xs">
-                    <Download size={11} /> Download
-                  </button>
+                  <button onClick={copy} className="btn-secondary py-1 px-2.5 text-xs"><Copy size={11} /> Copy</button>
+                  <button onClick={download} className="btn-secondary py-1 px-2.5 text-xs"><Download size={11} /> Download</button>
                 </div>
               </div>
-              <pre className="bg-navy-950 border border-navy-700 rounded-lg p-4 text-xs text-steel-200 whitespace-pre-wrap font-mono overflow-x-auto max-h-96 overflow-y-auto">
-                {output}
-              </pre>
+              <pre className="bg-navy-950 border border-navy-700 rounded-lg p-4 text-xs text-steel-200 whitespace-pre-wrap font-mono overflow-x-auto max-h-96 overflow-y-auto">{output}</pre>
             </div>
           )}
         </div>

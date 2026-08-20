@@ -155,7 +155,7 @@ export default function Header({ onMenuClick }) {
       {/* Notifications */}
       <div className="relative" ref={notifRef}>
         <button
-          onClick={() => { setNotifOpen(!notifOpen); setNotifOpen(p => !p); setSearchOpen(false) }}
+          onClick={() => { setNotifOpen(p => !p); setSearchOpen(false) }}
           className="p-2 rounded-lg hover:bg-navy-800 text-steel-400 hover:text-steel-200 transition-colors relative"
         >
           <Bell size={16} />

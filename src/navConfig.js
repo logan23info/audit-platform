@@ -4,6 +4,8 @@ export const navSections = [
     label: 'Platform',
     items: [
       { id: 'dashboard', label: 'Dashboard', path: '/', icon: 'LayoutDashboard' },
+      { id: 'wiki', label: 'How to Use (Wiki)', path: '/wiki', icon: 'BookOpen' },
+      { id: 'faq', label: 'FAQ', path: '/faq', icon: 'HelpCircle' },
     ]
   },
   {
@@ -91,6 +93,7 @@ export const navSections = [
       { id: 'pbc', label: 'PBC Master List', path: '/fieldwork/pbc', icon: 'List' },
       { id: 'tracker', label: 'Fieldwork Tracker', path: '/fieldwork/tracker', icon: 'CheckSquare' },
       { id: 'workpapers', label: 'Workpaper Index', path: '/fieldwork/workpapers', icon: 'FolderOpen' },
+      { id: 'library', label: 'Workpaper Library ☁️', path: '/fieldwork/library', icon: 'CloudUpload' },
     ]
   },
   {

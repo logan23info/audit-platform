@@ -6,15 +6,22 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import AuthPage from './pages/AuthPage'
 
-// Sprint 1
+// Platform
 import Dashboard from './pages/Dashboard'
+import Wiki from './pages/Wiki'
+import FAQ from './pages/FAQ'
+
+// ISO 27000
+import ISO27000 from './pages/iso27000/ISO27000'
+
+// Sprint 1 — ISO 19011
 import Clause4 from './pages/iso19011/Clause4'
 import Clause5 from './pages/iso19011/Clause5'
 import TOD from './pages/iso19011/TOD'
 import TOI from './pages/iso19011/TOI'
 import TOE from './pages/iso19011/TOE'
 
-// Sprint 2
+// Sprint 2 — ISO 19011 Cl. 6 & 7
 import Clause6Initiation from './pages/iso19011/Clause6Initiation'
 import Clause6Preparation from './pages/iso19011/Clause6Preparation'
 import Findings from './pages/iso19011/Findings'
@@ -59,7 +66,6 @@ import { ManagementReview, KPIDashboard, CAPATracker, AuditUniverse } from './pa
 
 import ComingSoon from './pages/ComingSoon'
 
-// ─── AUTH GATE ────────────────────────────────────────────────
 function AppShell() {
   const { user, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -85,9 +91,15 @@ function AppShell() {
           <Header onMenuClick={() => setMobileOpen(true)} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Routes>
+              {/* Platform */}
               <Route path="/" element={<Dashboard />} />
+              <Route path="/wiki" element={<Wiki />} />
+              <Route path="/faq" element={<FAQ />} />
 
-              {/* Sprint 1 */}
+              {/* ISO 27000 */}
+              <Route path="/iso27000" element={<ISO27000 />} />
+
+              {/* Sprint 1 — ISO 19011 */}
               <Route path="/iso19011/clause4" element={<Clause4 />} />
               <Route path="/iso19011/clause5" element={<Clause5 />} />
               <Route path="/iso19011/tod" element={<TOD />} />

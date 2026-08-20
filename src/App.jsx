@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
+import { ProgrammeProvider } from './context/ProgrammeContext'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import AuthPage from './pages/AuthPage'
 
-// Sprint 1 — ISO 19011 Core
+// Sprint 1
 import Dashboard from './pages/Dashboard'
 import Clause4 from './pages/iso19011/Clause4'
 import Clause5 from './pages/iso19011/Clause5'
@@ -11,7 +14,7 @@ import TOD from './pages/iso19011/TOD'
 import TOI from './pages/iso19011/TOI'
 import TOE from './pages/iso19011/TOE'
 
-// Sprint 2 — ISO 19011 Cl. 6 & 7
+// Sprint 2
 import Clause6Initiation from './pages/iso19011/Clause6Initiation'
 import Clause6Preparation from './pages/iso19011/Clause6Preparation'
 import Findings from './pages/iso19011/Findings'
@@ -48,6 +51,7 @@ import { IMSCrosswalk, IMSWorksheets } from './pages/ims/AllPages'
 import PBCList from './pages/fieldwork/PBCList'
 import FieldworkTracker from './pages/fieldwork/FieldworkTracker'
 import WorkpaperIndex from './pages/fieldwork/WorkpaperIndex'
+import WorkpaperLibrary from './pages/fieldwork/WorkpaperLibrary'
 
 // Sprint 8 — Reporting
 import ReportBuilder from './pages/reporting/ReportBuilder'
@@ -55,27 +59,42 @@ import { ManagementReview, KPIDashboard, CAPATracker, AuditUniverse } from './pa
 
 import ComingSoon from './pages/ComingSoon'
 
-export default function App() {
+// ─── AUTH GATE ────────────────────────────────────────────────
+function AppShell() {
+  const { user, loading, signOut } = useAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-navy-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-2 border-amber-audit border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="text-xs text-steel-400">Loading AuditIQ...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) return <AuthPage />
+
   return (
-    <BrowserRouter>
+    <ProgrammeProvider>
       <div className="flex h-screen overflow-hidden">
-        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} onSignOut={signOut} />
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <Header onMenuClick={() => setMobileOpen(true)} />
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <Routes>
               <Route path="/" element={<Dashboard />} />
 
-              {/* Sprint 1 — ISO 19011 Backbone */}
+              {/* Sprint 1 */}
               <Route path="/iso19011/clause4" element={<Clause4 />} />
               <Route path="/iso19011/clause5" element={<Clause5 />} />
               <Route path="/iso19011/tod" element={<TOD />} />
               <Route path="/iso19011/toi" element={<TOI />} />
               <Route path="/iso19011/toe" element={<TOE />} />
 
-              {/* Sprint 2 — ISO 19011 Cl. 6 & 7 */}
+              {/* Sprint 2 */}
               <Route path="/iso19011/clause6-initiation" element={<Clause6Initiation />} />
               <Route path="/iso19011/clause6-preparation" element={<Clause6Preparation />} />
               <Route path="/iso19011/findings" element={<Findings />} />
@@ -83,7 +102,7 @@ export default function App() {
               <Route path="/iso19011/reporting" element={<Clause65Reporting />} />
               <Route path="/iso19011/clause7" element={<Clause7 />} />
 
-              {/* Sprint 3 — ISO 27001 */}
+              {/* Sprint 3 */}
               <Route path="/iso27001/clause4" element={<ISO27001Clause4 />} />
               <Route path="/iso27001/clause5" element={<ISO27001Clause5 />} />
               <Route path="/iso27001/clause6" element={<ISO27001Clause6 />} />
@@ -92,36 +111,35 @@ export default function App() {
               <Route path="/iso27001/clause9" element={<ISO27001Clause9 />} />
               <Route path="/iso27001/clause10" element={<ISO27001Clause10 />} />
 
-              {/* Sprint 4 — ISO 27002 */}
+              {/* Sprint 4 */}
               <Route path="/iso27002/organizational" element={<Organizational />} />
               <Route path="/iso27002/people" element={<People />} />
               <Route path="/iso27002/physical" element={<Physical />} />
               <Route path="/iso27002/technological" element={<Technological />} />
               <Route path="/iso27002/netnew" element={<Technological />} />
 
-              {/* Sprint 5 — ISO 27005 */}
+              {/* Sprint 5 */}
               <Route path="/iso27005/assets" element={<Assets />} />
               <Route path="/iso27005/register" element={<RiskRegister />} />
               <Route path="/iso27005/rtp" element={<RTP />} />
               <Route path="/iso27005/scenarios" element={<Scenarios />} />
 
-              {/* Sprint 6 — ISO 9001 */}
+              {/* Sprint 6 */}
               <Route path="/iso9001/clause5" element={<ISO9001Clause5 />} />
               <Route path="/iso9001/clause7" element={<ISO9001Clause7 />} />
               <Route path="/iso9001/clause8" element={<ISO9001Clause8 />} />
               <Route path="/iso9001/clause9" element={<ISO9001Clause9 />} />
               <Route path="/iso9001/clause10" element={<ISO9001Clause10 />} />
-
-              {/* Sprint 6 — IMS Cross-Walk */}
               <Route path="/ims/crosswalk" element={<IMSCrosswalk />} />
               <Route path="/ims/worksheets" element={<IMSWorksheets />} />
 
-              {/* Sprint 7 — Fieldwork */}
+              {/* Sprint 7 */}
               <Route path="/fieldwork/pbc" element={<PBCList />} />
               <Route path="/fieldwork/tracker" element={<FieldworkTracker />} />
               <Route path="/fieldwork/workpapers" element={<WorkpaperIndex />} />
+              <Route path="/fieldwork/library" element={<WorkpaperLibrary />} />
 
-              {/* Sprint 8 — Reporting */}
+              {/* Sprint 8 */}
               <Route path="/reporting/builder" element={<ReportBuilder />} />
               <Route path="/reporting/management-review" element={<ManagementReview />} />
               <Route path="/reporting/kpi" element={<KPIDashboard />} />
@@ -133,6 +151,16 @@ export default function App() {
           </main>
         </div>
       </div>
+    </ProgrammeProvider>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>
     </BrowserRouter>
   )
 }

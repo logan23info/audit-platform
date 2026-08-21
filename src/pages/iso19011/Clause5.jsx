@@ -1,110 +1,71 @@
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 
-const programmeElements = [
-  {
-    clause: '5.2', title: 'Audit Programme Objectives',
-    description: 'Define measurable objectives for the entire audit programme — aligned to ISMS/QMS strategic goals.',
-    items: ['Alignment to management system objectives', 'Regulatory and contractual requirements', 'Risk appetite and risk levels of auditees', 'Availability of resources'],
-    artifact: 'Programme Objective Setting Template',
-  },
-  {
-    clause: '5.3', title: 'Audit Programme Risks & Opportunities',
-    description: 'Identify and manage risks to the audit programme itself — separate from the ISMS risk register.',
-    items: ['Inadequate planning of audit activities', 'Insufficient competent audit resources', 'Failure to achieve audit programme objectives', 'Threats to auditor independence'],
-    artifact: 'Audit Programme Risk Register',
-  },
-  {
-    clause: '5.4', title: 'Audit Programme Procedures',
-    description: 'Establish consistent SOPs governing how audits are planned, resourced, conducted, and closed.',
-    items: ['Audit method selection and justification', 'Audit team selection and assignment', 'Conducting audits per ISO 19011 Cl. 6', 'Maintaining and retaining records'],
-    artifact: 'Audit Programme SOP Set',
-  },
-  {
-    clause: '5.4.3', title: 'Audit Programme Resources',
-    description: 'Plan and allocate the resources required to deliver the audit programme effectively.',
-    items: ['Auditor hours per engagement', 'Tools, technology, and platform access', 'Training and competence development budget', 'Travel and remote audit provisions'],
-    artifact: 'Resource Planning Template',
-  },
-  {
-    clause: '5.5', title: 'Implementing the Audit Programme',
-    description: 'Execute planned audit activities — scheduling, team assignment, and communication.',
-    items: ['Annual audit schedule with dates and scope', 'Audit team assignment matrix', 'Communication plan for auditees', 'Coordination of remote and on-site activities'],
-    artifact: 'Audit Schedule & Team Assignment Matrix',
-  },
-  {
-    clause: '5.6', title: 'Monitoring & Reviewing the Programme',
-    description: 'Monitor KPIs to assess whether the audit programme is achieving its objectives.',
-    items: ['Audit completion rates vs. schedule', 'Finding closure timeliness', 'Auditor competence and performance', 'Auditee feedback on audit process'],
-    artifact: 'Programme KPI Dashboard',
-  },
-  {
-    clause: '5.7', title: 'Maintaining & Improving the Programme',
-    description: 'Continually improve the audit programme based on monitoring results and lessons learned.',
-    items: ['Lessons learned log per audit cycle', 'Audit methodology updates', 'Corrective actions on programme nonconformities', 'Annual programme review outcomes'],
-    artifact: 'Programme Improvement Log',
-  },
+const elements = [
+  { clause: '5.2', title: 'Audit Programme Objectives', color: 'border-l-blue-500',
+    desc: 'Establish measurable objectives for the entire audit programme — aligned to management system goals, risk levels, and regulatory requirements.',
+    items: ['Alignment to ISMS/QMS strategic objectives', 'Regulatory and contractual requirements considered', 'Risk appetite and auditee risk levels reflected', 'Available resources and auditor competence assessed', 'Results of previous audits and lessons learned incorporated', 'Changes in the organisation and technology environment'],
+    artifact: 'Audit Programme Objectives Document' },
+  { clause: '5.3', title: 'Audit Programme Risks & Opportunities', color: 'border-l-red-500',
+    desc: 'Identify risks and opportunities that could affect the audit programme — resource constraints, auditor availability, access issues, and scope changes.',
+    items: ['Risk: insufficient auditor competence for complex technical areas', 'Risk: auditee unavailability during planned audit window', 'Risk: scope creep beyond agreed boundaries', 'Risk: insufficient evidence obtained to support conclusions', 'Opportunity: combine IS + QMS audits to reduce auditee burden', 'Opportunity: remote audit methods reduce travel costs and time'],
+    artifact: 'Audit Programme Risk Register' },
+  { clause: '5.4', title: 'Audit Programme Resources', color: 'border-l-emerald-500',
+    desc: 'Determine and provide resources needed — lead auditor, audit team, time, budget, tools, and access to auditee systems.',
+    items: ['Lead auditor assigned with appropriate competence (Cl.7)', 'Audit team members assigned with complementary skills', 'Time allocated per audit phase: TOD, TOI, TOE, reporting', 'Budget confirmed: travel, tools, external expert fees', 'Access to auditee premises, systems, and staff confirmed', 'Audit management tools: workpaper templates, sampling tools'],
+    artifact: 'Audit Programme Resource Plan' },
+  { clause: '5.5', title: 'Audit Programme Implementation', color: 'border-l-purple-500',
+    desc: 'Schedule individual audits within the programme — prioritising higher-risk areas and maintaining auditor independence.',
+    items: ['Annual audit schedule produced and communicated to management', 'Higher-risk areas receive more frequent or in-depth audits', 'Auditor independence maintained — no self-review', 'Individual audit mandates issued (scope, criteria, dates, team)', 'Coordination with auditee to minimise operational disruption', 'Remote and on-site audit methods selected per context'],
+    artifact: 'Annual Audit Schedule + Individual Audit Mandates' },
+  { clause: '5.6', title: 'Audit Programme Monitoring & Review', color: 'border-l-amber-500',
+    desc: 'Monitor progress, identify deviations, and review the programme at planned intervals to ensure its continuing effectiveness.',
+    items: ['Programme progress monitored against planned schedule', 'Deviations from plan identified and managed (scope, timeline)', 'Programme performance metrics tracked: completion rate, finding rates', 'Programme reviewed annually — lessons learned incorporated', 'Results of monitoring reported to management', 'Programme updated when organisation or risk profile changes'],
+    artifact: 'Audit Programme Review Report' },
+  { clause: '5.7', title: 'Audit Programme Records', color: 'border-l-steel-400',
+    desc: 'Maintain records of the audit programme as documented information — individual audit plans, reports, and evidence of corrective actions.',
+    items: ['Individual audit plans and reports retained', 'Nonconformity and corrective action records maintained', 'Auditor competence and qualification records kept', 'Programme performance data and metrics retained', 'Management review records of programme performance', 'Records retained per defined retention schedule'],
+    artifact: 'Audit Programme Records Register' },
 ]
 
-const programmeLifecycle = [
-  { step: 'Establish', desc: 'Objectives & Scope', clause: '5.2' },
-  { step: 'Plan', desc: 'Resources & Schedule', clause: '5.4–5.5' },
-  { step: 'Execute', desc: 'Conduct Audits (Cl. 6)', clause: '5.5' },
-  { step: 'Monitor', desc: 'KPIs & Progress', clause: '5.6' },
-  { step: 'Improve', desc: 'Lessons & Updates', clause: '5.7' },
+const scheduleTemplate = [
+  { area: 'ISO 27001 — Full ISMS Cl.4–7', freq: 'Annual', duration: '3 days', risk: 'High', method: 'On-site' },
+  { area: 'ISO 27001 — Operations (Cl.8)', freq: 'Annual', duration: '2 days', risk: 'High', method: 'On-site' },
+  { area: 'ISO 27001 — Performance (Cl.9)', freq: 'Annual', duration: '1 day', risk: 'Medium', method: 'Remote' },
+  { area: 'ISO 27002 — Technological Controls', freq: 'Annual', duration: '3 days', risk: 'High', method: 'On-site' },
+  { area: 'ISO 27002 — Organizational Controls', freq: 'Annual', duration: '2 days', risk: 'Medium', method: 'Hybrid' },
+  { area: 'ISO 27005 — Risk Register Review', freq: 'Semi-annual', duration: '1 day', risk: 'High', method: 'Remote' },
+  { area: 'ISO 9001 — QMS (if IMS)', freq: 'Annual', duration: '2 days', risk: 'Medium', method: 'On-site' },
+  { area: 'Supplier Audits (key suppliers)', freq: 'Annual', duration: '1 day each', risk: 'Medium', method: 'On-site' },
 ]
 
 export default function Clause5() {
   return (
     <div className="max-w-5xl mx-auto">
-      <PageHeader
-        standard="ISO 19011:2018"
-        clause="Clause 5"
-        title="Managing an Audit Programme"
-        description="The governance layer above individual audits. Clause 5 defines how an organisation plans, resources, executes, monitors, and continually improves its entire portfolio of audit activity — covering both ISO 27001 and ISO 9001 under an IMS."
-        badges={['Programme Governance', 'Pre-Audit']}
-      />
+      <PageHeader standard="ISO 19011:2018" clause="Clause 5" title="Clause 5 — Audit Programme Management"
+        description="ISO 19011 Clause 5 covers managing the overall audit programme — setting objectives, identifying programme risks, allocating resources, implementing the annual schedule, monitoring progress, and maintaining records."
+        badges={['Programme Management', 'Pre-Audit', 'Annual Planning']} />
 
-      {/* Programme Lifecycle Flow */}
-      <div className="card mb-6">
-        <h2 className="section-title mb-4">Programme Lifecycle</h2>
-        <div className="flex flex-col sm:flex-row gap-2 overflow-x-auto">
-          {programmeLifecycle.map((step, i) => (
-            <div key={step.step} className="flex sm:flex-col items-center gap-2 flex-shrink-0 sm:flex-1">
-              <div className="bg-navy-800 border border-navy-600 rounded-lg px-3 py-2 text-center min-w-[100px] sm:min-w-0 sm:w-full">
-                <div className="text-xs font-bold text-white">{step.step}</div>
-                <div className="text-xs text-steel-400 mt-0.5">{step.desc}</div>
-                <span className="clause-tag mt-1 inline-block">{step.clause}</span>
-              </div>
-              {i < programmeLifecycle.length - 1 && (
-                <ArrowRight size={14} className="text-steel-500 flex-shrink-0 sm:hidden" />
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Programme Elements */}
       <div className="space-y-4 mb-6">
-        {programmeElements.map(el => (
-          <div key={el.clause} className="card">
+        {elements.map(el => (
+          <div key={el.clause} className={`card border-l-4 ${el.color}`}>
             <div className="flex flex-col sm:flex-row sm:items-start gap-3">
               <span className="clause-tag flex-shrink-0 self-start">{el.clause}</span>
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-white mb-1">{el.title}</h3>
-                <p className="text-sm text-steel-300 mb-3 leading-relaxed">{el.description}</p>
+                <p className="text-sm text-steel-300 mb-3 leading-relaxed">{el.desc}</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
-                  {el.items.map(item => (
-                    <div key={item} className="flex items-start gap-2">
-                      <CheckCircle2 size={12} className="text-amber-audit flex-shrink-0 mt-0.5" />
-                      <span className="text-xs text-steel-300 leading-snug">{item}</span>
+                  {el.items.map(i => (
+                    <div key={i} className="flex items-start gap-2">
+                      <CheckCircle2 size={12} className="text-emerald-audit flex-shrink-0 mt-0.5" />
+                      <span className="text-xs text-steel-300 leading-snug">{i}</span>
                     </div>
                   ))}
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-steel-400">Core Artifact:</span>
-                  <span className="badge badge-amber">{el.artifact}</span>
+                  <span className="text-xs text-steel-400">Key Artifact:</span>
+                  <span className="badge badge-amber text-xs">{el.artifact}</span>
                 </div>
               </div>
             </div>
@@ -112,32 +73,40 @@ export default function Clause5() {
         ))}
       </div>
 
-      <AIPanel
-        title="Generate Audit Programme Artifacts"
-        systemPrompt={`You are an ISO 19011:2018 audit programme management expert. Generate professional, structured audit programme documents aligned to Clause 5 requirements. All outputs must be ready for immediate use by audit teams. Use tables, numbered lists, and clear section headings. Be specific and practical — avoid generic placeholders where possible. Tailor outputs to the organisation and sector provided.`}
-        placeholder="e.g. Generate a 12-month IT audit programme schedule for an ISO 27001 certified SaaS company with 3 internal auditors"
+      <div className="card mb-6">
+        <h2 className="section-title mb-3">Sample Annual Audit Schedule Template</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-navy-700 bg-navy-800/50">
+              {['Audit Area', 'Frequency', 'Duration', 'Risk Level', 'Method'].map(h => (
+                <th key={h} className="text-left py-2.5 px-3 text-steel-400 font-medium whitespace-nowrap">{h}</th>
+              ))}
+            </tr></thead>
+            <tbody>
+              {scheduleTemplate.map((r, i) => (
+                <tr key={r.area} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/20'}`}>
+                  <td className="py-2.5 px-3 text-white font-medium">{r.area}</td>
+                  <td className="py-2.5 px-3 text-steel-300">{r.freq}</td>
+                  <td className="py-2.5 px-3 text-steel-300">{r.duration}</td>
+                  <td className="py-2.5 px-3">
+                    <span className={`badge text-xs ${r.risk === 'High' ? 'bg-red-900/40 text-red-300' : 'bg-amber-900/40 text-amber-300'}`}>{r.risk}</span>
+                  </td>
+                  <td className="py-2.5 px-3 text-steel-300">{r.method}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <AIPanel title="Generate Audit Programme Documents"
+        systemPrompt="You are an ISO 19011:2018 Clause 5 audit programme management specialist. Generate professional audit programme documents including objectives, annual schedules, resource plans, risk registers, and programme review reports. Align to ISO 19011:2018 Clause 5 requirements."
+        placeholder="e.g. Generate a 12-month ISO 27001 internal audit programme for a 500-person financial services firm"
         contextFields={[
-          { id: 'org', label: 'Organisation / Sector', placeholder: 'e.g. Healthcare provider, 1,200 employees, ISO 27001 certified', type: 'text' },
-          { id: 'auditorCount', label: 'Number of Auditors', placeholder: 'e.g. 2 internal auditors + 1 lead', type: 'text' },
-          { id: 'standards', label: 'Standards in Scope', type: 'select', options: [
-            'ISO 27001 only',
-            'ISO 27001 + ISO 9001 (IMS)',
-            'ISO 27001 + ISO 9001 + ISO 27005',
-            'Full platform scope'
-          ]},
-          { id: 'artifact', label: 'Programme Artifact Required', type: 'select', options: [
-            'Audit Programme Objectives Template',
-            'Audit Programme Risk Register',
-            'Audit Programme SOPs',
-            'Resource Planning Template',
-            'Annual Audit Schedule',
-            'Team Assignment Matrix',
-            'Communication Plan',
-            'Programme KPI Dashboard',
-            'Programme Improvement Log',
-          ]},
-        ]}
-      />
+          { id: 'org', label: 'Organisation & Sector', type: 'text', placeholder: 'e.g. UK bank, 500 staff, ISO 27001 certified' },
+          { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Annual Audit Programme', 'Audit Programme Objectives', 'Audit Programme Risk Register', 'Resource Plan', 'Individual Audit Mandate', 'Programme Review Report', 'Audit Schedule Template'] },
+          { id: 'standards', label: 'Standards in Scope', type: 'text', placeholder: 'e.g. ISO 27001, ISO 27002, ISO 9001 (IMS)' },
+        ]} />
     </div>
   )
 }

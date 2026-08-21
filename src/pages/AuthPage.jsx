@@ -20,12 +20,9 @@ export default function AuthPage() {
     setLoading(true)
     try {
       if (mode === 'signin') {
-        // Fix 1 — pass object not separate args
-        const { error } = await signIn({ email: form.email, password: form.password })
-        if (error) throw error
+        await signIn({ email: form.email, password: form.password })
       } else {
-        const { error } = await signUp({ email: form.email, password: form.password, fullName: form.fullName })
-        if (error) throw error
+        await signUp({ email: form.email, password: form.password, fullName: form.fullName })
         setSuccess('Account created! Check your email to confirm, then sign in.')
         setMode('signin')
       }

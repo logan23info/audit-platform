@@ -28,14 +28,26 @@ export function AuthProvider({ children }) {
 
   async function fetchProfile(userId) {
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
-      setProfile(data)
+
+      if (error && error.code === 'PGRST116') {
+        // Profile row does not exist yet — create it
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .insert({ id: userId, full_name: '', role: '', organisation: '' })
+          .select()
+          .single()
+        setProfile(newProfile ?? { id: userId })
+      } else {
+        setProfile(data ?? { id: userId })
+      }
     } catch (e) {
       console.error('Profile fetch error:', e)
+      setProfile({ id: userId }) // fallback — allow app to load
     } finally {
       setLoading(false)
     }

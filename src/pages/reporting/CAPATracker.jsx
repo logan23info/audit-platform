@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, CheckCircle2, Clock, AlertTriangle, Loader2, Save, ChevronDown, ChevronUp } from 'lucide-react'
-import { SkeletonTable } from '../../components/Skeleton'
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
@@ -139,7 +138,7 @@ export default function CAPATracker() {
       {!activeProgramme ? (
         <div className="card text-center py-12"><div className="text-white font-medium mb-1">No programme selected</div></div>
       ) : loading ? (
-        <SkeletonTable rows={5} cols={5} />
+        <div className="card text-center py-12"><Loader2 size={24} className="animate-spin text-steel-400 mx-auto" /></div>
       ) : filtered.length === 0 ? (
         <div className="card text-center py-12"><CheckCircle2 size={28} className="text-steel-500 mx-auto mb-3" /><div className="text-white font-medium mb-1">{findings.length === 0 ? 'No findings raised yet' : 'No findings match this filter'}</div><div className="text-xs text-steel-400">Raise findings from Fieldwork → Finding Register</div></div>
       ) : (

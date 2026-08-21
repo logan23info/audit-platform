@@ -1,5 +1,5 @@
 import { useState, Suspense, lazy } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ProgrammeProvider } from './context/ProgrammeContext'
 import { ThemeProvider } from './context/ThemeContext'

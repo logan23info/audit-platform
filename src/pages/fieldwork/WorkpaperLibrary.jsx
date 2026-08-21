@@ -5,7 +5,6 @@ import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getWorkpapers, createWorkpaper, deleteWorkpaper, deleteWorkpaperRecord, uploadFile, getSignedUrl, buildFilePath } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
-import { SkeletonTable } from '../../components/Skeleton'
 import ConfirmModal from '../../components/ConfirmModal'
 
 const STANDARDS = ['ISO 19011', 'ISO 27001', 'ISO 27002', 'ISO 27005', 'ISO 9001', 'IMS', 'General']
@@ -202,7 +201,7 @@ export default function WorkpaperLibrary() {
           <div className="text-xs text-steel-400">Select a programme from the header folder icon</div>
         </div>
       ) : loading ? (
-        <SkeletonTable rows={5} cols={5} />
+        <div className="card text-center py-12"><Loader2 size={24} className="animate-spin text-steel-400 mx-auto" /></div>
       ) : filtered.length === 0 ? (
         <div className="card text-center py-12">
           <CloudUpload size={32} className="text-steel-500 mx-auto mb-3" />
@@ -212,7 +211,7 @@ export default function WorkpaperLibrary() {
         </div>
       ) : (
         <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto table-scroll-wrap">
+          <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-navy-700 bg-navy-800/50">

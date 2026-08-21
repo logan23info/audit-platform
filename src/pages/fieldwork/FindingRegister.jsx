@@ -1,12 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Plus, AlertTriangle, CheckCircle2, Clock, Loader2, ChevronDown, ChevronUp, Save, Trash2, Search, X, FileDown } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getFindings, createFinding, updateFinding, deleteFinding } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
-import { SkeletonTable } from '../../components/Skeleton'
 import ConfirmModal from '../../components/ConfirmModal'
 import { exportToCSV, FINDING_COLUMNS } from '../../utils/exportCSV'
 
@@ -25,7 +23,6 @@ const statusConfig = {
 
 function FindingCard({ finding, onUpdate, onDelete }) {
   const { toast } = useToast()
-  const navigate = useNavigate()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -90,10 +87,7 @@ function FindingCard({ finding, onUpdate, onDelete }) {
                 {finding.due_date && <span className={isOverdue ? 'text-red-400 font-bold' : 'text-steel-400'}>Due: {finding.due_date}</span>}
                 <span className={`font-semibold ${statusConfig[finding.status]?.color}`}>{finding.status}</span>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => setEditing(true)} className="btn-secondary text-xs py-1.5">Update Response</button>
-                <button onClick={() => navigate('/reporting/capa')} className="btn-secondary text-xs py-1.5">→ CAPA Tracker</button>
-              </div>
+              <button onClick={() => setEditing(true)} className="btn-secondary text-xs py-1.5">Update Response</button>
             </div>
           ) : (
             <div className="space-y-3 bg-navy-800 rounded-lg p-3">
@@ -296,7 +290,7 @@ export default function FindingRegister() {
           <div className="text-xs text-steel-400">Select a programme from the header</div>
         </div>
       ) : loading ? (
-        <SkeletonTable rows={5} cols={4} />
+        <div className="card text-center py-12"><Loader2 size={24} className="animate-spin text-steel-400 mx-auto" /></div>
       ) : filtered.length === 0 ? (
         <div className="card text-center py-12">
           <AlertTriangle size={28} className="text-steel-500 mx-auto mb-3" />

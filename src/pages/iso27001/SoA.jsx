@@ -131,11 +131,10 @@ export default function SoA() {
   const [filterApplicable, setFilterApplicable] = useState('All')
   const [filterNew, setFilterNew] = useState(false)
   const [search, setSearch] = useState('')
-  const [lastSaved, setLastSaved] = useState(null)
 
   const update = (ref, field, value) => setSoaData(p => {
     const next = { ...p, [ref]: { ...p[ref], [field]: value } }
-    try { localStorage.setItem('auditiq-soa-data', JSON.stringify(next)); setLastSaved(new Date()) } catch (e) {}
+    try { localStorage.setItem('auditiq-soa-data', JSON.stringify(next)) } catch (e) {}
     return next
   })
 
@@ -205,11 +204,6 @@ export default function SoA() {
             <span className="text-xs text-steel-300">New 2022 only</span>
           </label>
           <span className="text-xs text-steel-400 ml-auto">{filtered.length} controls</span>
-          {lastSaved && (
-            <span className="text-xs text-emerald-400 flex items-center gap-1">
-              ✓ Auto-saved {lastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </span>
-          )}
           <button onClick={() => { if (window.confirm('Reset all SoA data?')) { localStorage.removeItem('auditiq-soa-data'); window.location.reload() } }} className="btn-secondary text-xs py-1.5 text-red-400 hover:text-red-300">Reset</button>
           <button onClick={() => exportToCSV(exportData, 'SoA_ISO27001', SOA_COLUMNS)} className="btn-secondary text-xs py-1.5">
             <FileDown size={12} /> Export SoA CSV
@@ -219,7 +213,7 @@ export default function SoA() {
 
       {/* SoA Table */}
       <div className="card p-0 overflow-hidden mb-6">
-        <div className="overflow-x-auto table-scroll-wrap">
+        <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-navy-700 bg-navy-800/50">

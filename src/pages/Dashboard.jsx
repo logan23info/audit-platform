@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Shield, BarChart3, FileText, AlertTriangle, CheckCircle2, Clock, FolderOpen, Zap, TrendingUp, Activity, Database } from 'lucide-react'
-import { SkeletonCard, Skeleton } from '../components/Skeleton'
 import { useAuth } from '../context/AuthContext'
 import { useProgramme } from '../context/ProgrammeContext'
 import { getWorkpapers, getFindings, getRisks, getPBCItems } from '../lib/supabase'
@@ -28,7 +27,7 @@ function StatCard({ label, value, sub, color, icon: Icon, loading }) {
         <Icon size={16} className={color} />
       </div>
       {loading
-        ? <div className="h-8 w-12 bg-navy-700 rounded animate-pulse mb-1 mx-auto" />
+        ? <div className="h-8 w-12 bg-navy-700 rounded animate-pulse mb-1" />
         : <div className={`font-display text-2xl font-bold mb-1 ${color}`}>{value}</div>}
       <div className="text-xs font-medium text-steel-200">{label}</div>
       {sub && <div className="text-xs text-steel-400 mt-0.5">{sub}</div>}
@@ -132,7 +131,7 @@ export default function Dashboard() {
                 <button onClick={() => navigate('/fieldwork/library')} className="text-xs text-amber-audit hover:text-amber-300 flex items-center gap-1">View all <ArrowRight size={11} /></button>
               </div>
               {loading ? (
-                <Skeleton rows={3} />
+                <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-navy-800 rounded animate-pulse" />)}</div>
               ) : recentWorkpapers.length === 0 ? (
                 <div className="text-center py-6">
                   <FileText size={24} className="text-steel-600 mx-auto mb-2" />
@@ -164,7 +163,7 @@ export default function Dashboard() {
                 <button onClick={() => navigate('/fieldwork/findings')} className="text-xs text-amber-audit hover:text-amber-300 flex items-center gap-1">View all <ArrowRight size={11} /></button>
               </div>
               {loading ? (
-                <Skeleton rows={3} />
+                <div className="space-y-2">{[...Array(3)].map((_, i) => <div key={i} className="h-10 bg-navy-800 rounded animate-pulse" />)}</div>
               ) : recentFindings.length === 0 ? (
                 <div className="text-center py-6">
                   <AlertTriangle size={24} className="text-steel-600 mx-auto mb-2" />

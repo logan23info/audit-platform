@@ -4,7 +4,6 @@ import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useToast } from '../../components/Toast'
 import { exportToCSV, WORKPAPER_COLUMNS } from '../../utils/exportCSV'
-import { SkeletonTable } from '../../components/Skeleton'
 import ConfirmModal from '../../components/ConfirmModal'
 import { getWorkpapers, updateWorkpaper, deleteWorkpaperRecord } from '../../lib/supabase'
 
@@ -102,10 +101,10 @@ export default function WorkpaperIndex() {
       {!activeProgramme ? (
         <div className="card text-center py-12"><FileText size={28} className="text-steel-500 mx-auto mb-3" /><div className="text-white font-medium mb-1">No programme selected</div></div>
       ) : loading ? (
-        <SkeletonTable rows={5} cols={5} />
+        <div className="card text-center py-12"><Loader2 size={24} className="animate-spin text-steel-400 mx-auto" /></div>
       ) : (
         <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto table-scroll-wrap">
+          <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead><tr className="border-b border-navy-700 bg-navy-800/50">
                 {['Ref', 'Title', 'Standard', 'Clause', 'Phase', 'Auditor', 'Status', ''].map(h => <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>)}

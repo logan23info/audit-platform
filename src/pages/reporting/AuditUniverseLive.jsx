@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Globe, Loader2, Save, CheckCircle2, AlertTriangle, Clock } from 'lucide-react'
-import { SkeletonTable } from '../../components/Skeleton'
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
@@ -108,7 +107,7 @@ export default function AuditUniverseLive() {
         <div className="card text-center py-12"><Globe size={28} className="text-steel-500 mx-auto mb-3" /><div className="text-white font-medium mb-1">No audit areas yet</div><button onClick={() => setShowModal(true)} className="btn-primary text-xs mt-3"><Plus size={12} /> Add First</button></div>
       ) : (
         <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto table-scroll-wrap">
+          <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead><tr className="border-b border-navy-700 bg-navy-800/50">{['Audit Area', 'Standards', 'Risk', 'Next Audit', 'Notes', 'Status'].map(h => <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>

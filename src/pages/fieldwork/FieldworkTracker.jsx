@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, CheckCircle2, Circle, AlertTriangle, Clock, Loader2, Save } from 'lucide-react'
-import { SkeletonTable } from '../../components/Skeleton'
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/Toast'
@@ -155,10 +154,10 @@ export default function FieldworkTracker() {
       {!activeProgramme ? (
         <div className="card text-center py-12"><div className="text-white font-medium mb-1">No programme selected</div></div>
       ) : loading ? (
-        <SkeletonTable rows={5} cols={5} />
+        <div className="card text-center py-12"><Loader2 size={24} className="animate-spin text-steel-400 mx-auto" /></div>
       ) : (
         <div className="card p-0 overflow-hidden">
-          <div className="overflow-x-auto table-scroll-wrap">
+          <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead><tr className="border-b border-navy-700 bg-navy-800/50">
                 {['Ref', 'Control', 'Standard', 'Clause', 'Phase', 'Auditor', 'Status'].map(h => <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>)}

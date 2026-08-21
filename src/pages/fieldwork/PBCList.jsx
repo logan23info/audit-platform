@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getPBCItems, createPBCItem, updatePBCItem, deletePBCItem } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
+import AIPanel from '../../components/AIPanel'
 import { exportToCSV, PBC_COLUMNS } from '../../utils/exportCSV'
 import ConfirmModal from '../../components/ConfirmModal'
 
@@ -152,6 +153,19 @@ export default function PBCList() {
       )}
       {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
       {showModal && <NewPBCModal programmeId={activeProgramme?.id} userId={user?.id} onCreated={item => setItems(p => [...p, item])} onClose={() => setShowModal(false)} />}
+
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Generate PBC Evidence List"
+          systemPrompt="You are an ISO 19011:2018 audit fieldwork specialist. Generate comprehensive PBC (Provided By Client) evidence lists for specific controls, clauses, or audit phases. Include evidence type, format, period covered, and responsible party. Organised by TOD, TOI, and TOE phases."
+          placeholder="e.g. Generate a PBC evidence list for ISO 27001 Clause 8 — Operations covering A.8.7, A.8.8, A.8.13 for a 12-month audit period"
+          contextFields={[
+            { id: 'scope', label: 'Audit Scope / Controls', type: 'text', placeholder: 'e.g. ISO 27002 A.8.1–A.8.8, Technological controls' },
+            { id: 'phase', label: 'Phase', type: 'select', options: ['TOD only', 'TOI only', 'TOE only', 'All phases (TOD + TOI + TOE)'] },
+            { id: 'period', label: 'Audit Period', type: 'text', placeholder: 'e.g. 1 January – 31 December 2025' },
+          ]}
+        />
+      </div>
     </div>
   )
 }

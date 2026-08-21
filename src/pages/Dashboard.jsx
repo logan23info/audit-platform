@@ -238,15 +238,11 @@ export default function Dashboard() {
           {loading ? <Skeleton rows={4} /> : (
             <div className="space-y-2">
               {[
-                ...findings.slice(0,2).map(f => ({
+                ...recentFindings.slice(0,2).map(f => ({
                   icon: '⚠️', label: `Finding raised — ${f.finding_ref}: ${f.title}`,
                   sub: f.rating, color: 'text-red-400', time: f.created_at
                 })),
-                ...risks.slice(0,2).map(r => ({
-                  icon: '🛡️', label: `Risk logged — ${r.risk_ref}: ${r.asset}`,
-                  sub: `Score ${r.inherent_score}`, color: 'text-amber-audit', time: r.created_at
-                })),
-                ...workpapers.slice(0,2).map(w => ({
+                ...recentWorkpapers.slice(0,2).map(w => ({
                   icon: '📋', label: `Workpaper — ${w.workpaper_ref}: ${w.title}`,
                   sub: w.status, color: 'text-blue-400', time: w.created_at
                 })),
@@ -266,7 +262,7 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-              {findings.length === 0 && risks.length === 0 && workpapers.length === 0 && (
+              {recentFindings.length === 0 && recentWorkpapers.length === 0 && (
                 <div className="text-xs text-steel-500 text-center py-4">No activity yet — start by raising a finding or logging a risk</div>
               )}
             </div>

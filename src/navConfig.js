@@ -1,16 +1,15 @@
 export const navSections = [
   {
-    id: 'core',
-    label: 'Platform',
+    id: 'core', label: 'Platform',
     items: [
       { id: 'dashboard', label: 'Dashboard', path: '/', icon: 'LayoutDashboard' },
       { id: 'wiki', label: 'How to Use (Wiki)', path: '/wiki', icon: 'BookOpen' },
       { id: 'faq', label: 'FAQ', path: '/faq', icon: 'HelpCircle' },
+      { id: 'profile', label: 'My Profile', path: '/profile', icon: 'User' },
     ]
   },
   {
-    id: 'iso19011',
-    label: 'ISO 19011 — Audit Methodology',
+    id: 'iso19011', label: 'ISO 19011 — Audit Methodology',
     items: [
       { id: '19011-cl4', label: 'Clause 4 — Principles', path: '/iso19011/clause4', icon: 'Shield' },
       { id: '19011-cl5', label: 'Clause 5 — Programme Mgmt', path: '/iso19011/clause5', icon: 'CalendarDays' },
@@ -27,28 +26,24 @@ export const navSections = [
     ]
   },
   {
-    id: 'iso27000',
-    label: 'ISO 27000 — Terminology',
-    items: [
-      { id: '27000', label: 'Audit Taxonomy Dictionary', path: '/iso27000', icon: 'BookMarked' },
-    ]
+    id: 'iso27000', label: 'ISO 27000 — Terminology',
+    items: [{ id: '27000', label: 'Audit Taxonomy Dictionary', path: '/iso27000', icon: 'BookMarked' }]
   },
   {
-    id: 'iso27001',
-    label: 'ISO 27001 — ISMS',
+    id: 'iso27001', label: 'ISO 27001 — ISMS',
     items: [
       { id: '27001-cl4', label: 'Clause 4 — Context & Scope', path: '/iso27001/clause4', icon: 'Map' },
       { id: '27001-cl5', label: 'Clause 5 — Leadership', path: '/iso27001/clause5', icon: 'Crown' },
       { id: '27001-cl6', label: 'Clause 6 — Planning & SoA', path: '/iso27001/clause6', icon: 'Target' },
       { id: '27001-cl7', label: 'Clause 7 — Support', path: '/iso27001/clause7', icon: 'Wrench' },
+      { id: '27001-soa', label: 'SoA Builder ⭐ — All 93 Controls', path: '/iso27001/soa', icon: 'CheckSquare' },
       { id: '27001-cl8', label: 'Clause 8 — Operation', path: '/iso27001/clause8', icon: 'Settings' },
       { id: '27001-cl9', label: 'Clause 9 — Performance', path: '/iso27001/clause9', icon: 'TrendingUp' },
       { id: '27001-cl10', label: 'Clause 10 — Improvement', path: '/iso27001/clause10', icon: 'RefreshCw' },
     ]
   },
   {
-    id: 'iso27002',
-    label: 'ISO 27002 — Controls',
+    id: 'iso27002', label: 'ISO 27002 — Controls',
     items: [
       { id: '27002-org', label: 'Organizational (5.1–5.37)', path: '/iso27002/organizational', icon: 'Building2' },
       { id: '27002-people', label: 'People (6.1–6.8)', path: '/iso27002/people', icon: 'UserCheck' },
@@ -58,18 +53,16 @@ export const navSections = [
     ]
   },
   {
-    id: 'iso27005',
-    label: 'ISO 27005 — Risk',
+    id: 'iso27005', label: 'ISO 27005 — Risk',
     items: [
       { id: '27005-assets', label: 'Asset Register', path: '/iso27005/assets', icon: 'Database' },
-      { id: '27005-register', label: 'Risk Register', path: '/iso27005/register', icon: 'AlertOctagon' },
+      { id: '27005-register', label: 'Risk Register ⭐ Live', path: '/iso27005/live-register', icon: 'AlertOctagon' },
       { id: '27005-rtp', label: 'Risk Treatment Plan', path: '/iso27005/rtp', icon: 'ShieldCheck' },
       { id: '27005-scenarios', label: 'Scenario Generator', path: '/iso27005/scenarios', icon: 'Zap' },
     ]
   },
   {
-    id: 'iso9001',
-    label: 'ISO 9001 — QMS',
+    id: 'iso9001', label: 'ISO 9001 — QMS',
     items: [
       { id: '9001-cl5', label: 'Clause 5 — Leadership', path: '/iso9001/clause5', icon: 'Crown' },
       { id: '9001-cl7', label: 'Clause 7 — Support', path: '/iso9001/clause7', icon: 'Wrench' },
@@ -79,32 +72,30 @@ export const navSections = [
     ]
   },
   {
-    id: 'ims',
-    label: 'IMS Cross-Walk',
+    id: 'ims', label: 'IMS Cross-Walk',
     items: [
       { id: 'ims-crosswalk', label: '27001 × 9001 Alignment', path: '/ims/crosswalk', icon: 'GitMerge' },
       { id: 'ims-worksheets', label: 'Joint Audit Worksheets', path: '/ims/worksheets', icon: 'FileCheck' },
     ]
   },
   {
-    id: 'fieldwork',
-    label: 'Fieldwork Operations',
+    id: 'fieldwork', label: 'Fieldwork Operations',
     items: [
-      { id: 'pbc', label: 'PBC Master List', path: '/fieldwork/pbc', icon: 'List' },
-      { id: 'tracker', label: 'Fieldwork Tracker', path: '/fieldwork/tracker', icon: 'CheckSquare' },
+      { id: 'pbc', label: 'PBC Master List ⭐ Live', path: '/fieldwork/pbc', icon: 'List' },
+      { id: 'tracker', label: 'Fieldwork Tracker ⭐ Live', path: '/fieldwork/tracker', icon: 'CheckSquare' },
+      { id: 'findings', label: 'Finding Register ⭐ Live', path: '/fieldwork/findings', icon: 'AlertTriangle' },
       { id: 'workpapers', label: 'Workpaper Index', path: '/fieldwork/workpapers', icon: 'FolderOpen' },
       { id: 'library', label: 'Workpaper Library ☁️', path: '/fieldwork/library', icon: 'CloudUpload' },
     ]
   },
   {
-    id: 'reporting',
-    label: 'Reporting & Governance',
+    id: 'reporting', label: 'Reporting & Governance',
     items: [
       { id: 'report-builder', label: 'Audit Report Builder', path: '/reporting/builder', icon: 'FileText' },
       { id: 'mgmt-review', label: 'Management Review Pack', path: '/reporting/management-review', icon: 'BarChart2' },
-      { id: 'kpi', label: 'KPI Dashboard (ISO 27004)', path: '/reporting/kpi', icon: 'Activity' },
-      { id: 'capa', label: 'CAPA Closure Tracker', path: '/reporting/capa', icon: 'CheckCircle' },
-      { id: 'audit-universe', label: 'Audit Universe & Plan', path: '/reporting/universe', icon: 'Globe' },
+      { id: 'kpi', label: 'KPI Dashboard ⭐ Live', path: '/reporting/kpi', icon: 'Activity' },
+      { id: 'capa', label: 'CAPA Tracker ⭐ Live', path: '/reporting/capa', icon: 'CheckCircle' },
+      { id: 'audit-universe', label: 'Audit Universe ⭐ Live', path: '/reporting/universe', icon: 'Globe' },
     ]
   },
 ]

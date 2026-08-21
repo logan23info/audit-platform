@@ -1,103 +1,184 @@
-import PageHeader from '../../components/PageHeader'
+import { useState } from 'react'
 import AIPanel from '../../components/AIPanel'
-import { CheckCircle2, Info } from 'lucide-react'
-
-const toiElements = [
-  { title: 'Walkthrough Scripts', desc: 'Step-by-step scripts for walking through a control end-to-end with the control owner. One walkthrough per control.', steps: ['Open with control objective statement', 'Ask control owner to narrate the process', 'Observe the control in action where possible', 'Capture evidence at each step'] },
-  { title: 'System Demonstration Guide', desc: 'Script for asking control owners to demonstrate the control working live — screen share, system login, or physical observation.', steps: ['Request live system demonstration', 'Observe control settings and configurations', 'Capture screenshots and screen recordings', 'Verify against documented procedure'] },
-  { title: 'Single Transaction Trace', desc: 'Trace one complete transaction through the control — e.g., one access request from ticket to provisioning to review.', steps: ['Select a real recent transaction', 'Trace from initiation to completion', 'Verify each step matches documented procedure', 'Document the trace in workpaper'] },
-  { title: 'Implementation Interview Questions', desc: '"Show me the last time this control ran — walk me through what happened." Structured questions per control type.', steps: ['Per-control question set', 'Focus on last occurrence of control execution', 'Request supporting evidence for each step', 'Identify deviations from documented procedure'] },
-  { title: 'Walkthrough Evidence Checklist', desc: 'Per-control list of what physical or digital evidence to capture during the walkthrough.', steps: ['Screenshots of system configurations', 'Exported access logs or approval records', 'Policy/procedure document version in use', 'Control owner name and date of walkthrough'] },
-  { title: 'Screenshot & Artifact Capture SOP', desc: 'Standard for how screenshots, exports, and config dumps are captured, named, and stored as audit evidence.', steps: ['Naming convention: ControlRef_Date_Type', 'Metadata: captured by, system, timestamp', 'Stored in audit file within 24 hours', 'Reviewed by lead auditor before TOE begins'] },
-  { title: 'First Instance Testing Template', desc: 'Formally documents the single walkthrough instance used to confirm implementation — the "first example" of the control operating.', steps: ['Document the specific instance tested', 'Reference transaction/event ID', 'Confirm control operated as designed', 'Obtain auditor sign-off on implementation'] },
-  { title: 'TOI vs TOE Boundary Guide', desc: 'Clear auditor guidance on when the walkthrough (TOI) ends and sampling (TOE) begins — critical to prevent scope creep.', steps: ['TOI = one instance, confirms control exists', 'TOE = multiple samples, confirms consistency', 'Do not use TOI samples in TOE population', 'Document boundary clearly in workpaper index'] },
-  { title: 'TOI Conclusion Workpaper', desc: 'Formal sign-off on implementation before proceeding to TOE.', steps: ['Implemented — control confirmed in operation', 'Not Implemented — control designed but not in use', 'Partially Implemented — some elements operational', 'Obtain lead auditor sign-off'] },
-]
-
-const conclusions = [
-  { label: 'Implemented', desc: 'Control confirmed in operation. Proceed to TOE.', color: 'bg-emerald-900/30 border-emerald-700 text-emerald-300' },
-  { label: 'Partially Implemented', desc: 'Some elements operational. Document gap, proceed with caveat.', color: 'bg-amber-900/30 border-amber-700 text-amber-300' },
-  { label: 'Not Implemented', desc: 'Control designed but not in use. Raise finding. TOE not applicable.', color: 'bg-red-900/30 border-red-700 text-red-300' },
-]
 
 export default function TOI() {
-  return (
-    <div className="max-w-5xl mx-auto">
-      <PageHeader
-        standard="ISO 19011:2018"
-        clause="Clause 6.4"
-        title="TOI — Test of Implementation"
-        description="Has the control actually been put into practice? TOI confirms that the control designed in TOD is actually operating in the organisation. It uses walkthroughs, system demonstrations, and single transaction traces to confirm implementation — not consistency over time."
-        badges={['TOI', 'Implementation', 'ISO 19011 Cl. 6.4']}
-      />
+  const [tab, setTab] = useState('overview')
+  const tabs = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'walkthrough', label: 'Walkthrough Scripts' },
+    { id: 'demo', label: 'System Demo Guide' },
+    { id: 'transaction', label: 'Transaction Trace' },
+    { id: 'evidence', label: 'Evidence Capture SOP' },
+    { id: 'boundary', label: 'TOI vs TOE Boundary' },
+    { id: 'workpaper', label: 'TOI Conclusion' },
+  ]
 
-      <div className="bg-purple-900/20 border border-purple-800/50 rounded-xl p-4 mb-6 flex gap-3">
-        <Info size={16} className="text-purple-400 flex-shrink-0 mt-0.5" />
-        <div>
-          <div className="text-sm font-semibold text-purple-300 mb-1">TOI Scope — One Instance Only</div>
-          <div className="text-xs text-purple-200/80 leading-relaxed">
-            TOI uses a single walkthrough instance to confirm a control is implemented. It does NOT test consistency over time — that is TOE. Evidence from the TOI walkthrough must not be included in the TOE sample population.
-          </div>
-        </div>
+  return (
+    <div>
+      <div className="page-header">
+        <div className="page-eyebrow">ISO 19011:2018 — Clause 6.4 | Audit Execution</div>
+        <h1 className="page-title">TOI — Test of Implementation</h1>
+        <p className="page-desc">Verify that a control has actually been put into practice. TOI asks: has the designed control been implemented in the live environment?</p>
+      </div>
+      <div className="flex gap-1 mb-3" style={{ flexWrap: 'wrap' }}>
+        <span className="badge badge-blue">TOI Phase</span>
+        <span className="badge badge-gold">Implementation Verification</span>
+        <span className="badge badge-muted">Stage 1 Fieldwork</span>
+      </div>
+      <div className="tab-list">
+        {tabs.map(t => <button key={t.id} className={`tab-btn ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>)}
       </div>
 
-      <div className="card mb-6">
-        <h2 className="section-title mb-3">TOI Conclusion Framework</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {conclusions.map(c => (
-            <div key={c.label} className={`border rounded-lg p-3 ${c.color}`}>
-              <div className="text-xs font-bold mb-1">{c.label}</div>
-              <div className="text-xs opacity-80 leading-snug">{c.desc}</div>
+      {tab === 'overview' && (
+        <div className="grid-2">
+          <div className="card">
+            <div className="card-title">What is TOI?</div>
+            <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>Test of Implementation confirms that the designed control exists in the operating environment. It uses a single walkthrough instance — one transaction, one example — to confirm the control is live.</p>
+            <div style={{ marginTop: '1rem', padding: '0.75rem', background: 'var(--navy)', borderRadius: 6, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.35rem', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Key Question</div>
+              <p style={{ fontSize: '0.88rem', color: 'var(--accent)', fontStyle: 'italic' }}>"Show me the last time this control ran. Walk me through exactly what happened."</p>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-title">TOI Methods (ISO 19011 Annex A)</div>
+            {[
+              ['Inquiry', 'Interview control owners — ask them to explain and demonstrate'],
+              ['Observation', 'Watch the control operate in real time or via screen share'],
+              ['Document Review', 'Review evidence of one instance of the control operating'],
+              ['Re-performance', 'Auditor independently performs the control to confirm feasibility'],
+              ['System Demo', 'Request live system demonstration of the control being active'],
+            ].map(([method, desc]) => (
+              <div key={method} style={{ marginBottom: '0.6rem' }}>
+                <span className="badge badge-blue" style={{ marginRight: '0.5rem', fontSize: '0.6rem' }}>{method}</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {tab === 'walkthrough' && (
+        <AIPanel
+          title="AI — Walkthrough Script Generator"
+          systemPrompt="You are an ISO 19011 audit specialist. Generate a detailed walkthrough script for a specific IT control. Include: (1) Pre-walkthrough preparation (documents to request in advance), (2) Opening questions to set context, (3) Step-by-step walkthrough questions (walk me through…), (4) Evidence to capture at each step, (5) Screenshots/artifacts to request, (6) Challenge questions (what if…), (7) Closing questions to confirm completeness. Format as a numbered script an auditor can follow live during the walkthrough interview."
+          fields={[
+            { key: 'control', label: 'Control to Walk Through', placeholder: 'e.g. A.8.2 Privileged access provisioning process' },
+            { key: 'system', label: 'System / Environment', placeholder: 'e.g. Active Directory, AWS IAM, ServiceNow' },
+            { key: 'role', label: 'Interviewee Role', placeholder: 'e.g. IT Security Manager' },
+          ]}
+        />
+      )}
+
+      {tab === 'demo' && (
+        <div>
+          <div className="card mb-3">
+            <div className="card-title">System Demonstration Guide</div>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Request the control owner to show the control operating live in the system — screen share or in-person.</p>
+            <table className="tbl">
+              <thead><tr><th>Control Type</th><th>What to Ask to See</th><th>Evidence to Capture</th></tr></thead>
+              <tbody>
+                {[
+                  ['Access Control', 'Show a live access provisioning request being approved', 'Ticket screenshot + approval record + AD group membership'],
+                  ['Change Management', 'Show the last change being raised, approved, and implemented', 'Change ticket + CAB minutes + deployment log'],
+                  ['Patch Management', 'Show the patch dashboard and a recent patch deployment report', 'Vulnerability scan export + patch compliance report'],
+                  ['Backup & Recovery', 'Show last backup job result and one successful restore test', 'Backup logs + restore test record'],
+                  ['Logging & Monitoring', 'Show SIEM dashboard and a recent alert that was investigated', 'SIEM screenshot + incident ticket'],
+                  ['DLP', 'Show DLP policy applied and a recent triggered alert', 'DLP console screenshot + alert log'],
+                ].map((r, i) => (
+                  <tr key={i}><td className="text-accent">{r[0]}</td><td style={{ color: 'var(--text-primary)' }}>{r[1]}</td><td>{r[2]}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'transaction' && (
+        <AIPanel
+          title="AI — Single Transaction Trace Script"
+          systemPrompt="You are an ISO 19011 IT audit specialist. Generate a Single Transaction Trace script for a specific control. This traces ONE end-to-end transaction through the entire control process — from initiation to completion. Include: (1) Transaction selection criteria (which instance to trace), (2) Each process step to follow from start to finish, (3) Evidence to verify at each step, (4) System screens / logs to review, (5) People to interview at each stage, (6) Red flags that would indicate control failure. Format as a sequential step-by-step trace script."
+          fields={[
+            { key: 'control', label: 'Control / Process to Trace', placeholder: 'e.g. User access request from ticket to active account' },
+            { key: 'system', label: 'Systems Involved', placeholder: 'e.g. ServiceNow → Active Directory → Azure AD' },
+          ]}
+        />
+      )}
+
+      {tab === 'evidence' && (
+        <div className="card">
+          <div className="card-title">Evidence Capture SOP — TOI</div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Standard operating procedure for capturing, naming, and storing TOI evidence.</p>
+          {[
+            { step: '01', title: 'Pre-Walkthrough', items: ['Request evidence list sent to auditee 5 days prior', 'Confirm system access / screen share capability', 'Prepare walkthrough script and evidence checklist'] },
+            { step: '02', title: 'During Walkthrough', items: ['Capture timestamped screenshots of system state', 'Record audit session where permissible and agreed', 'Note exact system names, versions, settings observed'] },
+            { step: '03', title: 'Evidence Naming', items: ['Format: [ControlRef]-[Date]-[Description]-[Auditor]', 'Example: A8-2-20240115-AccessProvisioning-JSmith', 'Store in secure audit file repository immediately'] },
+            { step: '04', title: 'Evidence Verification', items: ['Confirm evidence matches the control criterion', 'Note any discrepancies between policy and practice', 'Cross-reference to TOD documentation'] },
+          ].map(s => (
+            <div key={s.step} style={{ marginBottom: '1rem', paddingLeft: '1rem', borderLeft: '2px solid var(--accent)' }}>
+              <div className="flex items-center gap-1 mb-1">
+                <span className="mono" style={{ fontSize: '0.7rem', color: 'var(--accent)' }}>STEP {s.step}</span>
+                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)' }}>{s.title}</span>
+              </div>
+              {s.items.map((item, i) => <div key={i} style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>• {item}</div>)}
             </div>
           ))}
         </div>
-      </div>
+      )}
 
-      <div className="space-y-4 mb-6">
-        {toiElements.map((el, idx) => (
-          <div key={el.title} className="card border-l-4 border-l-purple-500">
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 rounded bg-purple-900/50 text-purple-300 text-xs font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                {idx + 1}
-              </span>
-              <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-white mb-1">{el.title}</h3>
-                <p className="text-sm text-steel-300 mb-3 leading-relaxed">{el.desc}</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                  {el.steps.map(s => (
-                    <div key={s} className="flex items-start gap-2">
-                      <CheckCircle2 size={12} className="text-purple-400 flex-shrink-0 mt-0.5" />
-                      <span className="text-xs text-steel-300 leading-snug">{s}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+      {tab === 'boundary' && (
+        <div className="card">
+          <div className="card-title">TOI vs TOE Boundary Guide</div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>Critical for auditors to know when walkthrough (TOI) ends and sampling (TOE) begins — prevents scope creep and ensures correct conclusions.</p>
+          <table className="tbl">
+            <thead><tr><th>Dimension</th><th>TOI</th><th>TOE</th></tr></thead>
+            <tbody>
+              {[
+                ['Purpose', 'Confirm control exists and is implemented', 'Confirm control has operated consistently over time'],
+                ['Sample Size', '1 instance (single walkthrough)', 'Multiple instances (statistical sample)'],
+                ['Time Period', 'Current state / single event', '6–12 month audit window'],
+                ['Evidence Type', 'System demo, single document, one observation', 'Population + sample + exception rate'],
+                ['Conclusion', 'Implemented / Not Implemented', 'Effective / Ineffective / Effective with Exceptions'],
+                ['When to Stop TOI', 'After confirming control is live with one instance', 'After sampling confirms operating frequency met'],
+                ['Escalation', 'If control not found → finding + halt TOE', 'If exception rate exceeds threshold → finding'],
+              ].map((r, i) => (
+                <tr key={i}><td className="text-gold fw-600">{r[0]}</td><td style={{ color: 'var(--accent)' }}>{r[1]}</td><td style={{ color: 'var(--green)' }}>{r[2]}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {tab === 'workpaper' && (
+        <div className="card">
+          <div className="card-title">TOI Conclusion Workpaper</div>
+          <div className="grid-2" style={{ gap: '0.75rem', marginBottom: '0.75rem' }}>
+            {['Control Reference', 'Control Name', 'Auditor Name', 'Walkthrough Date', 'Interviewee', 'Interviewee Role'].map(f => (
+              <div className="form-group" key={f} style={{ marginBottom: 0 }}><label className="form-label">{f}</label><input className="form-input" placeholder={`Enter…`} /></div>
+            ))}
           </div>
-        ))}
-      </div>
-
-      <AIPanel
-        title="Generate TOI Artifacts"
-        systemPrompt={`You are a senior IT auditor specialising in Test of Implementation (TOI) under ISO 19011:2018. Generate detailed walkthrough scripts, implementation interview guides, and evidence capture templates. TOI tests whether a control is actually in operation — using one walkthrough instance. All outputs must be structured, professional audit workpapers. Include specific questions, evidence items, and auditor instruction notes. Tailor to the control, system, and sector provided.`}
-        placeholder="e.g. Generate a walkthrough script for testing the Patch Management control in an Azure environment"
-        contextFields={[
-          { id: 'control', label: 'Control Being Tested', placeholder: 'e.g. Patch Management — ISO 27002 A.8.8', type: 'text' },
-          { id: 'system', label: 'System / Technology', placeholder: 'e.g. Azure, Active Directory, AWS IAM', type: 'text' },
-          { id: 'sector', label: 'Organisation / Sector', placeholder: 'e.g. Healthcare SaaS, 300 employees', type: 'text' },
-          { id: 'artifact', label: 'TOI Artifact Required', type: 'select', options: [
-            'Walkthrough Script',
-            'System Demonstration Guide',
-            'Single Transaction Trace Template',
-            'Implementation Interview Questions',
-            'Walkthrough Evidence Checklist',
-            'Screenshot & Artifact Capture SOP',
-            'First Instance Testing Template',
-            'TOI vs TOE Boundary Guidance Note',
-            'TOI Conclusion Workpaper',
-          ]},
-        ]}
-      />
+          <div className="form-group">
+            <label className="form-label">Walkthrough Procedures Performed</label>
+            <textarea className="ai-input" style={{ minHeight: 80 }} placeholder="Describe procedures: inquiry, observation, document review, system demo…" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Evidence Obtained</label>
+            <textarea className="ai-input" style={{ minHeight: 60 }} placeholder="List evidence items captured with file references…" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">TOI Conclusion</label>
+            <select className="form-select">
+              <option>Implemented — Control is live and operating as designed. Proceed to TOE.</option>
+              <option>Partially Implemented — Control present with noted gaps. Proceed with exceptions.</option>
+              <option>Not Implemented — Control not found in operation. Finding raised.</option>
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Rationale</label>
+            <textarea className="ai-input" style={{ minHeight: 60 }} placeholder="Explain the basis for your TOI conclusion…" />
+          </div>
+          <button className="btn btn-primary w-full">Save TOI Workpaper</button>
+        </div>
+      )}
     </div>
   )
 }

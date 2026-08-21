@@ -1,65 +1,55 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { useAuth } from './AuthContext'
-import { getProgrammes, createProgramme, updateProgramme } from '../lib/supabase'
+import { getProgrammes } from '../lib/supabase'
 
 const ProgrammeContext = createContext({})
 
 export function ProgrammeProvider({ children }) {
   const { user } = useAuth()
   const [programmes, setProgrammes] = useState([])
-  const [activeProgramme, setActiveProgramme] = useState(null)
+  const [activeProgramme, setActiveProgrammeState] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (user) loadProgrammes()
-    else { setProgrammes([]); setActiveProgramme(null) }
-  }, [user])
+  const setActiveProgramme = useCallback((prog) => {
+    setActiveProgrammeState(prog)
+    // Fix 5 — persist active programme to localStorage
+    if (prog) localStorage.setItem('auditiq-active-programme', prog.id)
+    else localStorage.removeItem('auditiq-active-programme')
+  }, [])
 
-  async function loadProgrammes() {
-    setLoading(true)
+  // Fix 2 — reload function for ProgrammeSelector edit
+  const reload = useCallback(async () => {
+    if (!user) return
     try {
       const data = await getProgrammes(user.id)
-      setProgrammes(data)
-      // Auto-select last active programme
-      const saved = localStorage.getItem('auditiq_active_programme')
-      if (saved) {
-        const found = data.find(p => p.id === saved)
-        if (found) setActiveProgramme(found)
-        else if (data.length > 0) setActiveProgramme(data[0])
-      } else if (data.length > 0) {
-        setActiveProgramme(data[0])
-      }
-    } catch (e) {
-      console.error('Load programmes error:', e)
-    } finally {
+      setProgrammes(data || [])
+      return data || []
+    } catch (e) { console.error(e); return [] }
+  }, [user])
+
+  useEffect(() => {
+    if (!user) { setProgrammes([]); setActiveProgrammeState(null); return }
+    const load = async () => {
+      setLoading(true)
+      try {
+        const data = await getProgrammes(user.id)
+        setProgrammes(data || [])
+        // Fix 5 — restore active programme from localStorage
+        const savedId = localStorage.getItem('auditiq-active-programme')
+        if (savedId && data?.length > 0) {
+          const found = data.find(p => p.id === savedId)
+          setActiveProgrammeState(found || data[0])
+        } else if (data?.length > 0) {
+          setActiveProgrammeState(data[0])
+        }
+      } catch (e) { console.error(e) }
       setLoading(false)
     }
-  }
-
-  function selectProgramme(programme) {
-    setActiveProgramme(programme)
-    localStorage.setItem('auditiq_active_programme', programme.id)
-  }
-
-  async function addProgramme(data) {
-    const prog = await createProgramme({ ...data, user_id: user.id })
-    setProgrammes(prev => [prog, ...prev])
-    selectProgramme(prog)
-    return prog
-  }
-
-  async function editProgramme(id, updates) {
-    const prog = await updateProgramme(id, updates)
-    setProgrammes(prev => prev.map(p => p.id === id ? prog : p))
-    if (activeProgramme?.id === id) setActiveProgramme(prog)
-    return prog
-  }
+    load()
+  }, [user])
 
   return (
-    <ProgrammeContext.Provider value={{
-      programmes, activeProgramme, loading,
-      selectProgramme, addProgramme, editProgramme, loadProgrammes
-    }}>
+    <ProgrammeContext.Provider value={{ programmes, activeProgramme, setActiveProgramme, loading, reload }}>
       {children}
     </ProgrammeContext.Provider>
   )

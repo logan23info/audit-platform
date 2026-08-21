@@ -1,157 +1,158 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, CheckCircle2, Circle, Clock, Loader2, Save, Trash2, Search, X, Filter, FileDown } from 'lucide-react'
+import { SkeletonTable } from '../../components/Skeleton'
 import PageHeader from '../../components/PageHeader'
-import AIPanel from '../../components/AIPanel'
-import { CheckCircle2, Circle, Clock, Filter, Download } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useProgramme } from '../../context/ProgrammeContext'
+import { getPBCItems, createPBCItem, updatePBCItem, deletePBCItem } from '../../lib/supabase'
+import { useToast } from '../../components/Toast'
+import { exportToCSV, PBC_COLUMNS } from '../../utils/exportCSV'
+import ConfirmModal from '../../components/ConfirmModal'
 
-const pbcItems = [
-  { id: 'PBC001', control: 'ISO 27001 Cl. 5.2', description: 'Information Security Policy (current approved version)', phase: 'TOD', domain: 'Governance', status: 'Received', priority: 'High' },
-  { id: 'PBC002', control: 'ISO 27001 Cl. 5.3', description: 'RACI Matrix — ISMS roles and responsibilities', phase: 'TOD', domain: 'Governance', status: 'Received', priority: 'High' },
-  { id: 'PBC003', control: 'ISO 27001 Cl. 6.1.3', description: 'Statement of Applicability (SoA) — signed and current', phase: 'TOD', domain: 'Planning', status: 'Pending', priority: 'High' },
-  { id: 'PBC004', control: 'ISO 27001 Cl. 6.1.2', description: 'Risk Assessment results — current cycle', phase: 'TOD', domain: 'Risk', status: 'Pending', priority: 'High' },
-  { id: 'PBC005', control: 'ISO 27002 A.5.7', description: 'Threat Intelligence reports — last 3 months', phase: 'TOI', domain: 'Organizational', status: 'Not Started', priority: 'Medium' },
-  { id: 'PBC006', control: 'ISO 27002 A.6.3', description: 'IS Awareness Training completion records — all staff, current year', phase: 'TOE', domain: 'People', status: 'Received', priority: 'High' },
-  { id: 'PBC007', control: 'ISO 27002 A.7.2', description: 'Physical access control logs — last 90 days', phase: 'TOE', domain: 'Physical', status: 'Pending', priority: 'Medium' },
-  { id: 'PBC008', control: 'ISO 27002 A.8.2', description: 'User access review records — last 12 months (quarterly)', phase: 'TOE', domain: 'Technological', status: 'Not Started', priority: 'High' },
-  { id: 'PBC009', control: 'ISO 27002 A.8.8', description: 'Vulnerability scan reports — last 12 months', phase: 'TOE', domain: 'Technological', status: 'Not Started', priority: 'High' },
-  { id: 'PBC010', control: 'ISO 27002 A.8.12', description: 'DLP policy configuration and alert logs — last 90 days', phase: 'TOI', domain: 'Technological', status: 'Pending', priority: 'Medium' },
-  { id: 'PBC011', control: 'ISO 27001 Cl. 9.3', description: 'Management Review minutes and action log — last cycle', phase: 'TOE', domain: 'Governance', status: 'Received', priority: 'High' },
-  { id: 'PBC012', control: 'ISO 27005', description: 'Risk Register — current with residual scores', phase: 'TOD', domain: 'Risk', status: 'Pending', priority: 'High' },
-  { id: 'PBC013', control: 'ISO 9001 Cl. 7.1.5', description: 'Calibration Register and certificates — current year', phase: 'TOE', domain: 'Quality', status: 'Not Started', priority: 'Medium' },
-  { id: 'PBC014', control: 'ISO 9001 Cl. 9.1.2', description: 'Customer satisfaction survey results — last 12 months', phase: 'TOE', domain: 'Quality', status: 'Not Started', priority: 'Medium' },
-  { id: 'PBC015', control: 'ISO 27001 Cl. 10.2', description: 'CAPA register with closure evidence — audit period', phase: 'TOE', domain: 'Improvement', status: 'Received', priority: 'High' },
-]
+const phaseColors = { TOD: 'bg-blue-900/40 text-blue-300', TOI: 'bg-purple-900/40 text-purple-300', TOE: 'bg-emerald-900/40 text-emerald-300', 'PBC Evidence': 'bg-pink-900/40 text-pink-300' }
 
-const statusConfig = {
-  'Received': { color: 'bg-emerald-900/40 text-emerald-300 border-emerald-700', icon: CheckCircle2 },
-  'Pending': { color: 'bg-amber-900/40 text-amber-300 border-amber-700', icon: Clock },
-  'Not Started': { color: 'bg-navy-700 text-steel-400 border-navy-600', icon: Circle },
-}
-
-const phaseColors = {
-  'TOD': 'bg-blue-900/40 text-blue-300',
-  'TOI': 'bg-purple-900/40 text-purple-300',
-  'TOE': 'bg-emerald-900/40 text-emerald-300',
+function NewPBCModal({ programmeId, userId, onCreated, onClose }) {
+  const { toast } = useToast()
+  const [form, setForm] = useState({ description: '', control_ref: '', phase: 'TOD', domain: 'Governance', priority: 'High', notes: '' })
+  const [saving, setSaving] = useState(false)
+  const save = async () => {
+    if (!form.description) return
+    setSaving(true)
+    try { const item = await createPBCItem({ ...form, user_id: userId, programme_id: programmeId, status: 'Not Started' }); onCreated(item); onClose(); toast('PBC item added — ' + item.pbc_ref) }
+    catch (e) { toast('Failed: ' + e.message, 'error') }
+    setSaving(false)
+  }
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-navy-900 border border-navy-600 rounded-2xl w-full max-w-lg">
+        <div className="p-5 border-b border-navy-700 flex items-center justify-between"><h2 className="font-semibold text-white">New PBC Evidence Request</h2><button onClick={onClose} className="text-steel-400 text-lg">×</button></div>
+        <div className="p-5 space-y-3">
+          <div><label className="block text-xs text-steel-400 mb-1">Evidence Required *</label><input className="input-field" placeholder="e.g. IS Awareness Training completion records" value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="block text-xs text-steel-400 mb-1">Control Reference</label><input className="input-field" placeholder="e.g. A.6.3" value={form.control_ref} onChange={e => setForm(p => ({ ...p, control_ref: e.target.value }))} /></div>
+            <div><label className="block text-xs text-steel-400 mb-1">Phase</label><select className="input-field" value={form.phase} onChange={e => setForm(p => ({ ...p, phase: e.target.value }))}><option>TOD</option><option>TOI</option><option>TOE</option><option>PBC Evidence</option></select></div>
+            <div><label className="block text-xs text-steel-400 mb-1">Domain</label><select className="input-field" value={form.domain} onChange={e => setForm(p => ({ ...p, domain: e.target.value }))}>{['Governance','Planning','Risk','Organizational','People','Physical','Technological','Quality','Improvement'].map(d => <option key={d}>{d}</option>)}</select></div>
+            <div><label className="block text-xs text-steel-400 mb-1">Priority</label><select className="input-field" value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}><option>High</option><option>Medium</option><option>Low</option></select></div>
+          </div>
+          <div><label className="block text-xs text-steel-400 mb-1">Notes</label><textarea className="textarea-field" rows={2} value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} /></div>
+          <div className="flex gap-2"><button onClick={save} disabled={saving || !form.description} className="btn-primary flex-1 justify-center">{saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <><Save size={14} /> Add PBC Item</>}</button><button onClick={onClose} className="btn-secondary">Cancel</button></div>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function PBCList() {
+  const { user } = useAuth()
+  const { activeProgramme } = useProgramme()
+  const { toast } = useToast()
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const [filterPhase, setFilterPhase] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
-  const [filterDomain, setFilterDomain] = useState('All')
+  const [search, setSearch] = useState('')
+  const [updatingId, setUpdatingId] = useState(null)
+  const [confirmDel, setConfirmDel] = useState(null)
 
-  const filtered = pbcItems.filter(item => {
-    return (filterPhase === 'All' || item.phase === filterPhase) &&
-      (filterStatus === 'All' || item.status === filterStatus) &&
-      (filterDomain === 'All' || item.domain === filterDomain)
-  })
+  const load = useCallback(async () => {
+    if (!activeProgramme) return
+    setLoading(true)
+    try { setItems(await getPBCItems(activeProgramme.id)) }
+    catch (e) { console.error(e) }
+    setLoading(false)
+  }, [activeProgramme])
 
-  const stats = {
-    total: pbcItems.length,
-    received: pbcItems.filter(i => i.status === 'Received').length,
-    pending: pbcItems.filter(i => i.status === 'Pending').length,
-    notStarted: pbcItems.filter(i => i.status === 'Not Started').length,
+  useEffect(() => { load() }, [load])
+
+  const updateStatus = async (id, status) => {
+    setUpdatingId(id)
+    try {
+      const updated = await updatePBCItem(id, { status, received_date: status === 'Received' ? new Date().toISOString().split('T')[0] : null })
+      setItems(prev => prev.map(i => i.id === id ? updated : i))
+      toast(status === 'Received' ? 'Evidence marked received ✓' : 'Status updated', 'success')
+    } catch (e) { toast('Update failed', 'error') }
+    setUpdatingId(null)
   }
+
+  const handleDelete = (id, ref) => {
+    setConfirmDel({
+      title: `Delete ${ref}?`,
+      message: 'This PBC item will be permanently removed.',
+      onConfirm: async () => {
+        try { await deletePBCItem(id); setItems(p => p.filter(i => i.id !== id)); toast(`${ref} deleted`, 'info') }
+        catch (e) { toast('Delete failed', 'error') }
+      }
+    })
+  }
+
+  const filtered = items.filter(i =>
+    (filterPhase === 'All' || i.phase === filterPhase) &&
+    (filterStatus === 'All' || i.status === filterStatus) &&
+    (!search || i.description?.toLowerCase().includes(search.toLowerCase()) || i.control_ref?.toLowerCase().includes(search.toLowerCase()) || i.pbc_ref?.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  const stats = { total: items.length, received: items.filter(i => i.status === 'Received').length, pending: items.filter(i => i.status === 'Pending').length, notStarted: items.filter(i => i.status === 'Not Started').length }
 
   return (
     <div className="max-w-6xl mx-auto">
-      <PageHeader
-        standard="Fieldwork"
-        clause="PBC Master List"
-        title="Provided By Client — Master Evidence List"
-        description="Single metadata-tagged evidence tracker covering all standards and all testing phases. Filter by Phase (TOD/TOI/TOE), Domain, or Status. One list — no per-phase duplication."
-        badges={['PBC', 'Evidence Tracker', 'All Standards']}
-      />
+      <PageHeader standard="Fieldwork" clause="PBC Master List" title="PBC Master List ⭐ Live" description="Provided By Client evidence tracker — saved to Supabase. Track evidence receipt per phase and domain in real time." badges={['Live Data', 'Supabase', activeProgramme?.programme_id || 'No Programme']} />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Total Items', value: stats.total, color: 'text-white' },
-          { label: 'Received', value: stats.received, color: 'text-emerald-400' },
-          { label: 'Pending', value: stats.pending, color: 'text-amber-audit' },
-          { label: 'Not Started', value: stats.notStarted, color: 'text-steel-400' },
-        ].map(s => (
-          <div key={s.label} className="card-sm text-center">
-            <div className={`font-display text-2xl font-bold mb-1 ${s.color}`}>{s.value}</div>
-            <div className="text-xs text-steel-400">{s.label}</div>
-          </div>
+        {[{ label: 'Total', value: stats.total, color: 'text-white' }, { label: 'Received', value: stats.received, color: 'text-emerald-400' }, { label: 'Pending', value: stats.pending, color: 'text-amber-audit' }, { label: 'Not Started', value: stats.notStarted, color: 'text-steel-400' }].map(s => (
+          <div key={s.label} className="card-sm text-center"><div className={`font-display text-2xl font-bold mb-1 ${s.color}`}>{s.value}</div><div className="text-xs text-steel-400">{s.label}</div></div>
         ))}
       </div>
 
       <div className="card mb-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Filter size={13} className="text-steel-400" />
-            <span className="text-xs text-steel-400 font-medium">Filter:</span>
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-1 min-w-48">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-400" />
+            <input className="input-field pl-8 text-xs py-1.5" placeholder="Search evidence, controls, refs..." value={search} onChange={e => setSearch(e.target.value)} />
+            {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-steel-400 hover:text-steel-200"><X size={12} /></button>}
           </div>
-          {[
-            { label: 'Phase', value: filterPhase, setter: setFilterPhase, options: ['All', 'TOD', 'TOI', 'TOE'] },
-            { label: 'Status', value: filterStatus, setter: setFilterStatus, options: ['All', 'Received', 'Pending', 'Not Started'] },
-            { label: 'Domain', value: filterDomain, setter: setFilterDomain, options: ['All', 'Governance', 'Planning', 'Risk', 'Organizational', 'People', 'Physical', 'Technological', 'Quality', 'Improvement'] },
-          ].map(f => (
+          {[{ label: 'Phase', value: filterPhase, setter: setFilterPhase, options: ['All','TOD','TOI','TOE','PBC Evidence'] }, { label: 'Status', value: filterStatus, setter: setFilterStatus, options: ['All','Received','Pending','Not Started'] }].map(f => (
             <div key={f.label} className="flex items-center gap-1.5">
               <span className="text-xs text-steel-400">{f.label}:</span>
-              <select
-                className="input-field py-1 text-xs w-auto"
-                value={f.value}
-                onChange={e => f.setter(e.target.value)}
-              >
-                {f.options.map(o => <option key={o}>{o}</option>)}
-              </select>
+              <select className="input-field py-1 text-xs" value={f.value} onChange={e => f.setter(e.target.value)}>{f.options.map(o => <option key={o}>{o}</option>)}</select>
             </div>
           ))}
-          <span className="text-xs text-steel-400 ml-auto">{filtered.length} items</span>
+          <button onClick={() => exportToCSV(filtered, `PBC_${activeProgramme?.programme_id}`, PBC_COLUMNS)} disabled={filtered.length === 0} className="btn-secondary text-xs py-1.5"><FileDown size={12} /> Export CSV</button>
+          <button onClick={() => setShowModal(true)} disabled={!activeProgramme} className="btn-primary text-xs py-1.5"><Plus size={12} /> Add PBC Item</button>
         </div>
       </div>
 
-      <div className="card mb-6 p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-navy-700 bg-navy-800/50">
-                {['ID', 'Control Ref', 'Evidence Required', 'Phase', 'Domain', 'Priority', 'Status'].map(h => (
-                  <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((item, i) => {
-                const sc = statusConfig[item.status]
-                const StatusIcon = sc.icon
-                return (
+      {!activeProgramme ? (
+        <div className="card text-center py-12"><div className="text-white font-medium">No programme selected</div></div>
+      ) : loading ? (
+        <SkeletonTable rows={5} cols={5} />
+      ) : (
+        <div className="card p-0 overflow-hidden">
+          <div className="overflow-x-auto table-scroll-wrap">
+            <table className="w-full text-xs">
+              <thead><tr className="border-b border-navy-700 bg-navy-800/50">{['Ref','Control','Evidence Required','Phase','Priority','Status',''].map(h => <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>)}</tr></thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={7} className="py-12 text-center text-steel-400">{items.length === 0 ? 'No PBC items yet' : 'No items match filter'}</td></tr>
+                ) : filtered.map((item, i) => (
                   <tr key={item.id} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/20'}`}>
-                    <td className="py-2.5 px-3 font-mono text-amber-audit font-semibold whitespace-nowrap">{item.id}</td>
-                    <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap font-mono text-xs">{item.control}</td>
-                    <td className="py-2.5 px-3 text-white leading-snug max-w-xs">{item.description}</td>
-                    <td className="py-2.5 px-3 whitespace-nowrap">
-                      <span className={`badge ${phaseColors[item.phase]}`}>{item.phase}</span>
-                    </td>
-                    <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap">{item.domain}</td>
-                    <td className="py-2.5 px-3 whitespace-nowrap">
-                      <span className={`badge ${item.priority === 'High' ? 'bg-red-900/30 text-red-300' : 'bg-navy-700 text-steel-400'}`}>{item.priority}</span>
-                    </td>
-                    <td className="py-2.5 px-3 whitespace-nowrap">
-                      <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-medium ${sc.color}`}>
-                        <StatusIcon size={10} />
-                        {item.status}
-                      </span>
-                    </td>
+                    <td className="py-2.5 px-3 font-mono text-amber-audit font-semibold">{item.pbc_ref}</td>
+                    <td className="py-2.5 px-3 text-steel-300 font-mono">{item.control_ref}</td>
+                    <td className="py-2.5 px-3 text-white max-w-xs truncate">{item.description}</td>
+                    <td className="py-2.5 px-3"><span className={`badge ${phaseColors[item.phase] || 'badge-steel'}`}>{item.phase}</span></td>
+                    <td className="py-2.5 px-3"><span className={`badge ${item.priority === 'High' ? 'bg-red-900/30 text-red-300' : item.priority === 'Medium' ? 'bg-amber-900/30 text-amber-300' : 'badge-steel'}`}>{item.priority}</span></td>
+                    <td className="py-2.5 px-3"><select className="input-field py-0.5 text-xs w-28" value={item.status} disabled={updatingId === item.id} onChange={e => updateStatus(item.id, e.target.value)}><option>Not Started</option><option>Pending</option><option>Received</option></select></td>
+                    <td className="py-2.5 px-3"><button onClick={() => handleDelete(item.id, item.pbc_ref)} className="text-steel-500 hover:text-red-400 transition-colors"><Trash2 size={13} /></button></td>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-2 border-t border-navy-700 text-xs text-steel-500">{filtered.length} of {items.length} items</div>
         </div>
-      </div>
-
-      <AIPanel
-        title="Generate Custom PBC Request List"
-        systemPrompt="You are an IT audit evidence management expert. Generate comprehensive Provided By Client (PBC) evidence request lists for ISO management system audits. Each PBC item must include: PBC ID, Control Reference (standard + clause/control), Description of evidence required, Testing Phase (TOD/TOI/TOE), Control Domain, Priority (High/Medium/Low), and specific instructions for the auditee on format and scope of evidence. Group by domain and phase for clarity."
-        placeholder="e.g. Generate a PBC list for an ISO 27001 Annex A Technological Controls audit — AWS environment, 12-month audit period"
-        contextFields={[
-          { id: 'scope', label: 'Audit Scope', placeholder: 'e.g. Full ISO 27001 + ISO 9001 IMS audit', type: 'text' },
-          { id: 'tech', label: 'Technology Environment', placeholder: 'e.g. AWS, Azure AD, Qualys, Microsoft 365', type: 'text' },
-          { id: 'period', label: 'Audit Period', placeholder: 'e.g. 1 Jan 2025 – 31 Dec 2025', type: 'text' },
-          { id: 'focus', label: 'Domain Focus', type: 'select', options: ['All Domains', 'Governance & Policies only', 'Technological Controls only', 'People Controls only', 'Physical Controls only', 'Risk Management only', 'Quality (ISO 9001) only'] },
-        ]}
-      />
+      )}
+      {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
+      {showModal && <NewPBCModal programmeId={activeProgramme?.id} userId={user?.id} onCreated={item => setItems(p => [...p, item])} onClose={() => setShowModal(false)} />}
     </div>
   )
 }

@@ -204,3 +204,30 @@ export async function updatePBCItem(id, updates) {
   if (error) throw error
   return data
 }
+
+// ── Delete & Update functions ─────────────────────────
+export async function updateRisk(id, updates) {
+  const { data, error } = await supabase.from('risk_register').update(updates).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteRisk(id) {
+  const { error } = await supabase.from('risk_register').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteFinding(id) {
+  const { error } = await supabase.from('findings').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function deletePBCItem(id) {
+  const { error } = await supabase.from('pbc_items').delete().eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteWorkpaperRecord(id) {
+  const { error } = await supabase.from('workpapers').delete().eq('id', id)
+  if (error) throw error
+}

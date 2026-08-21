@@ -1,119 +1,155 @@
+import { useState, useEffect, useCallback } from 'react'
+import { FileText, Loader2, CheckCircle2, Clock, Edit2, Save, X, Trash2, FileDown } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
-import AIPanel from '../../components/AIPanel'
-
-const workpapers = [
-  { id: 'WP-001', type: 'Planning', title: 'Audit Programme — Objectives & Scope', phase: 'Pre-Audit', standard: 'ISO 19011 Cl. 5', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-002', type: 'Planning', title: 'Formal Audit Plan', phase: 'Pre-Audit', standard: 'ISO 19011 Cl. 6.3', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-003', type: 'Planning', title: 'Work Assignment Matrix', phase: 'Pre-Audit', standard: 'ISO 19011 Cl. 6.3', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-004', type: 'Meeting', title: 'Opening Meeting Agenda & Minutes', phase: 'Initiation', standard: 'ISO 19011 Cl. 6.4.2', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-005', type: 'TOD', title: 'IS Policy Suite — Design Adequacy Review', phase: 'TOD', standard: 'ISO 27001 Cl. 5', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-006', type: 'TOD', title: 'SoA Design Review — 93 Controls', phase: 'TOD', standard: 'ISO 27001 Cl. 6.1.3', status: 'Signed Off', auditor: 'Lead Auditor' },
-  { id: 'WP-007', type: 'TOI', title: 'Access Control Walkthrough — A.8.2', phase: 'TOI', standard: 'ISO 27002 A.8.2', status: 'In Review', auditor: 'Auditor 2' },
-  { id: 'WP-008', type: 'TOI', title: 'Threat Intelligence Walkthrough — A.5.7', phase: 'TOI', standard: 'ISO 27002 A.5.7', status: 'Signed Off', auditor: 'Auditor 1' },
-  { id: 'WP-009', type: 'TOE', title: 'User Access Review — Sampling Workpaper', phase: 'TOE', standard: 'ISO 27002 A.8.2', status: 'Draft', auditor: 'Auditor 2' },
-  { id: 'WP-010', type: 'TOE', title: 'IS Awareness Training — TOE Sampling', phase: 'TOE', standard: 'ISO 27002 A.6.3', status: 'Signed Off', auditor: 'Auditor 1' },
-  { id: 'WP-011', type: 'TOE', title: 'Vulnerability Management — TOE Workpaper', phase: 'TOE', standard: 'ISO 27002 A.8.8', status: 'Draft', auditor: 'Auditor 2' },
-  { id: 'WP-012', type: 'Finding', title: 'Finding F001 — Access Review Gap (High)', phase: 'Findings', standard: 'ISO 27002 A.8.2', status: 'Draft', auditor: 'Lead Auditor' },
-  { id: 'WP-013', type: 'Finding', title: 'Finding F002 — Threat Intel Coverage (Medium)', phase: 'Findings', standard: 'ISO 27002 A.5.7', status: 'Draft', auditor: 'Auditor 1' },
-  { id: 'WP-014', type: 'Meeting', title: 'Closing Meeting Agenda & Minutes', phase: 'Closure', standard: 'ISO 19011 Cl. 6.4.7', status: 'Not Started', auditor: 'Lead Auditor' },
-  { id: 'WP-015', type: 'Report', title: 'Draft Audit Report', phase: 'Reporting', standard: 'ISO 19011 Cl. 6.5', status: 'Not Started', auditor: 'Lead Auditor' },
-]
-
-const typeColors = {
-  Planning: 'bg-steel-400/20 text-steel-300',
-  Meeting: 'bg-cyan-900/40 text-cyan-300',
-  TOD: 'bg-blue-900/40 text-blue-300',
-  TOI: 'bg-purple-900/40 text-purple-300',
-  TOE: 'bg-emerald-900/40 text-emerald-300',
-  Finding: 'bg-red-900/40 text-red-300',
-  Report: 'bg-amber-900/40 text-amber-300',
-}
+import { useProgramme } from '../../context/ProgrammeContext'
+import { useToast } from '../../components/Toast'
+import { exportToCSV, WORKPAPER_COLUMNS } from '../../utils/exportCSV'
+import { SkeletonTable } from '../../components/Skeleton'
+import ConfirmModal from '../../components/ConfirmModal'
+import { getWorkpapers, updateWorkpaper, deleteWorkpaperRecord } from '../../lib/supabase'
 
 const statusColors = {
-  'Signed Off': 'text-emerald-400',
-  'In Review': 'text-amber-audit',
-  'Draft': 'text-blue-400',
-  'Not Started': 'text-steel-500',
+  'Signed Off': 'bg-emerald-900/40 text-emerald-300 border-emerald-700',
+  'In Review': 'bg-amber-900/40 text-amber-300 border-amber-700',
+  'Draft': 'bg-blue-900/40 text-blue-300 border-blue-700',
+  'Not Started': 'bg-navy-700 text-steel-400 border-navy-600',
 }
+const phaseColors = { TOD: 'bg-blue-900/40 text-blue-300', TOI: 'bg-purple-900/40 text-purple-300', TOE: 'bg-emerald-900/40 text-emerald-300' }
 
 export default function WorkpaperIndex() {
-  return (
-    <div className="max-w-5xl mx-auto">
-      <PageHeader
-        standard="Fieldwork"
-        clause="Workpaper Index"
-        title="Audit Workpaper Index"
-        description="Master index of all workpapers produced — cross-referenced to controls, standards, and findings. Every workpaper must appear here before the audit file can be closed."
-        badges={['Workpapers', 'Audit File', 'ISO 19011']}
-      />
+  const { activeProgramme } = useProgramme()
+  const [workpapers, setWorkpapers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [filterPhase, setFilterPhase] = useState('All')
+  const [filterStatus, setFilterStatus] = useState('All')
+  const [editingId, setEditingId] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const { toast } = useToast()
+  const [saving, setSaving] = useState(false)
+  const [confirmDel, setConfirmDel] = useState(null)
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        {[
-          { label: 'Total Workpapers', value: workpapers.length, color: 'text-white' },
-          { label: 'Signed Off', value: workpapers.filter(w => w.status === 'Signed Off').length, color: 'text-emerald-400' },
-          { label: 'In Review / Draft', value: workpapers.filter(w => ['In Review', 'Draft'].includes(w.status)).length, color: 'text-amber-audit' },
-          { label: 'Not Started', value: workpapers.filter(w => w.status === 'Not Started').length, color: 'text-steel-400' },
-        ].map(s => (
-          <div key={s.label} className="card-sm text-center">
-            <div className={`font-display text-2xl font-bold mb-1 ${s.color}`}>{s.value}</div>
-            <div className="text-xs text-steel-400">{s.label}</div>
-          </div>
+  const load = useCallback(async () => {
+    if (!activeProgramme) return
+    setLoading(true)
+    try { setWorkpapers(await getWorkpapers(activeProgramme.id)) }
+    catch (e) { console.error(e) }
+    setLoading(false)
+  }, [activeProgramme])
+
+  useEffect(() => { load() }, [load])
+
+  const startEdit = (wp) => { setEditingId(wp.id); setEditForm({ status: wp.status, auditor: wp.auditor || '', notes: wp.notes || '' }) }
+
+  const saveEdit = async (id) => {
+    setSaving(true)
+    try {
+      const updated = await updateWorkpaper(id, editForm)
+      setWorkpapers(prev => prev.map(w => w.id === id ? updated : w))
+      setEditingId(null)
+      toast('Workpaper updated')
+    } catch (e) { console.error(e) }
+    setSaving(false)
+  }
+
+  const filtered = workpapers.filter(w =>
+    (filterPhase === 'All' || w.phase === filterPhase) &&
+    (filterStatus === 'All' || w.status === filterStatus)
+  )
+
+  const stats = {
+    total: workpapers.length,
+    signedOff: workpapers.filter(w => w.status === 'Signed Off').length,
+    inReview: workpapers.filter(w => w.status === 'In Review').length,
+    draft: workpapers.filter(w => w.status === 'Draft').length,
+  }
+  const pct = stats.total > 0 ? Math.round((stats.signedOff / stats.total) * 100) : 0
+
+  return (
+    <div className="max-w-6xl mx-auto">
+      <PageHeader standard="Fieldwork" clause="Workpaper Index" title="Workpaper Index ⭐ Live" description="Complete index of all workpapers in your active audit programme — live from Supabase. Update status and auditor inline." badges={['Live Data', 'Supabase', activeProgramme?.programme_id || 'No Programme']} />
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {[{ label: 'Total', value: stats.total, color: 'text-white' }, { label: 'Signed Off', value: stats.signedOff, color: 'text-emerald-400' }, { label: 'In Review', value: stats.inReview, color: 'text-amber-audit' }, { label: 'Draft', value: stats.draft, color: 'text-blue-400' }].map(s => (
+          <div key={s.label} className="card-sm text-center"><div className={`font-display text-2xl font-bold mb-1 ${s.color}`}>{s.value}</div><div className="text-xs text-steel-400">{s.label}</div></div>
         ))}
       </div>
 
-      <div className="card mb-6 p-0 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-navy-700 bg-navy-800/50">
-                {['WP ID', 'Type', 'Workpaper Title', 'Phase', 'Standard / Control', 'Status', 'Auditor'].map(h => (
-                  <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {workpapers.map((wp, i) => (
-                <tr key={wp.id} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/20'}`}>
-                  <td className="py-2.5 px-3 font-mono text-amber-audit font-semibold whitespace-nowrap">{wp.id}</td>
-                  <td className="py-2.5 px-3 whitespace-nowrap">
-                    <span className={`badge ${typeColors[wp.type]}`}>{wp.type}</span>
-                  </td>
-                  <td className="py-2.5 px-3 text-white leading-snug">{wp.title}</td>
-                  <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap">{wp.phase}</td>
-                  <td className="py-2.5 px-3 text-steel-400 font-mono whitespace-nowrap">{wp.standard}</td>
-                  <td className={`py-2.5 px-3 font-medium whitespace-nowrap ${statusColors[wp.status]}`}>{wp.status}</td>
-                  <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap">{wp.auditor}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {stats.total > 0 && (
+        <div className="card mb-4">
+          <div className="flex items-center justify-between mb-2"><span className="text-xs text-steel-400">Sign-Off Completion</span><span className="text-xs font-bold text-white">{pct}%</span></div>
+          <div className="h-2 bg-navy-700 rounded-full overflow-hidden"><div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} /></div>
         </div>
-      </div>
+      )}
 
-      <div className="card mb-6">
-        <h2 className="section-title mb-3">Audit File Closure Checklist</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      <div className="card mb-4">
+        <div className="flex flex-wrap gap-3 items-center">
           {[
-            'All workpapers signed off by assigned auditor', 'All workpapers reviewed by lead auditor', 'All TOD conclusions documented and signed', 'All TOI conclusions documented and signed', 'All TOE conclusions documented and signed', 'All findings have 4Cs fully documented', 'Management responses received for all findings', 'Draft report reviewed and approved', 'Closing meeting completed and minutes signed', 'PBC evidence stored securely in audit file', 'Confidential information returned or destroyed', 'Audit programme manager sign-off obtained',
-          ].map((item, i) => (
-            <div key={i} className="flex items-start gap-2 bg-navy-800 rounded-lg px-3 py-2">
-              <span className="text-xs font-mono text-amber-audit flex-shrink-0 w-4">{i + 1}.</span>
-              <span className="text-xs text-steel-300 leading-snug">{item}</span>
+            { label: 'Phase', value: filterPhase, setter: setFilterPhase, options: ['All', 'Pre-Audit', 'TOD', 'TOI', 'TOE', 'Finding', 'Meeting', 'Report'] },
+            { label: 'Status', value: filterStatus, setter: setFilterStatus, options: ['All', 'Signed Off', 'In Review', 'Draft', 'Not Started'] },
+          ].map(f => (
+            <div key={f.label} className="flex items-center gap-1.5">
+              <span className="text-xs text-steel-400">{f.label}:</span>
+              <select className="input-field py-1 text-xs" value={f.value} onChange={e => f.setter(e.target.value)}>
+                {f.options.map(o => <option key={o}>{o}</option>)}
+              </select>
             </div>
           ))}
+          <span className="text-xs text-steel-400 ml-auto">{filtered.length} workpapers</span>
+          <button onClick={() => exportToCSV(filtered, `Workpapers_${activeProgramme?.programme_id}`, WORKPAPER_COLUMNS)} disabled={filtered.length === 0} className="btn-secondary text-xs py-1.5"><FileDown size={12} /> Export CSV</button>
         </div>
       </div>
 
-      <AIPanel
-        title="Generate Workpaper Templates"
-        systemPrompt="You are an ISO 19011:2018 audit workpaper expert. Generate professional audit workpaper templates including headers, control references, evidence sections, testing steps, exception recording, and auditor conclusion fields. All workpapers must include: Workpaper ID, control reference, audit objective, testing approach, evidence obtained, exceptions noted, conclusion (TOD/TOI/TOE result), auditor name, date, and reviewer sign-off field."
-        placeholder="e.g. Generate a TOE sampling workpaper template for Patch Management control — monthly frequency, 12-month period"
-        contextFields={[
-          { id: 'type', label: 'Workpaper Type', type: 'select', options: ['TOD Conclusion Workpaper', 'TOI Walkthrough Workpaper', 'TOE Sampling Workpaper', 'Finding Workpaper (4Cs)', 'Meeting Minutes Template', 'Audit Closure Checklist', 'Quality Review Checklist'] },
-          { id: 'control', label: 'Control / Area', placeholder: 'e.g. ISO 27002 A.8.8 Vulnerability Management', type: 'text' },
-          { id: 'auditor', label: 'Auditor Name', placeholder: 'e.g. Jane Smith, CISA', type: 'text' },
-        ]}
-      />
+      {!activeProgramme ? (
+        <div className="card text-center py-12"><FileText size={28} className="text-steel-500 mx-auto mb-3" /><div className="text-white font-medium mb-1">No programme selected</div></div>
+      ) : loading ? (
+        <SkeletonTable rows={5} cols={5} />
+      ) : (
+        <div className="card p-0 overflow-hidden">
+          <div className="overflow-x-auto table-scroll-wrap">
+            <table className="w-full text-xs">
+              <thead><tr className="border-b border-navy-700 bg-navy-800/50">
+                {['Ref', 'Title', 'Standard', 'Clause', 'Phase', 'Auditor', 'Status', ''].map(h => <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr><td colSpan={8} className="py-12 text-center text-steel-400">No workpapers yet — upload files in Workpaper Library or generate AI artifacts</td></tr>
+                ) : filtered.map((wp, i) => (
+                  <tr key={wp.id} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/20'}`}>
+                    <td className="py-2.5 px-3 font-mono text-amber-audit font-semibold whitespace-nowrap">{wp.workpaper_ref}</td>
+                    <td className="py-2.5 px-3 text-white max-w-xs truncate">{wp.title}</td>
+                    <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap">{wp.standard}</td>
+                    <td className="py-2.5 px-3 text-blue-400 font-mono whitespace-nowrap">{wp.clause_control}</td>
+                    <td className="py-2.5 px-3 whitespace-nowrap"><span className={`badge text-xs ${phaseColors[wp.phase] || 'badge-steel'}`}>{wp.phase}</span></td>
+                    <td className="py-2.5 px-3 text-steel-300 whitespace-nowrap">
+                      {editingId === wp.id ? <input className="input-field py-0.5 text-xs w-28" value={editForm.auditor} onChange={e => setEditForm(p => ({ ...p, auditor: e.target.value }))} /> : wp.auditor || '—'}
+                    </td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">
+                      {editingId === wp.id
+                        ? <select className="input-field py-0.5 text-xs w-28" value={editForm.status} onChange={e => setEditForm(p => ({ ...p, status: e.target.value }))}>
+                          <option>Draft</option><option>In Review</option><option>Signed Off</option><option>Not Started</option>
+                        </select>
+                        : <span className={`badge border text-xs ${statusColors[wp.status] || 'badge-steel'}`}>{wp.status}</span>}
+                    </td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">
+                      {editingId === wp.id ? (
+                        <div className="flex gap-1">
+                          <button onClick={() => saveEdit(wp.id)} disabled={saving} className="text-emerald-400 hover:text-emerald-300"><Save size={13} /></button>
+                          <button onClick={() => setEditingId(null)} className="text-steel-400 hover:text-steel-200"><X size={13} /></button>
+                        </div>
+                      ) : <button onClick={() => startEdit(wp)} className="text-steel-400 hover:text-amber-audit transition-colors"><Edit2 size={13} /></button>}
+                    </td>
+                    <td className="py-2.5 px-3 whitespace-nowrap">
+                      <button onClick={() => setConfirmDel({ title: `Delete ${wp.workpaper_ref}?`, message: `"${wp.title}" will be permanently deleted.`, onConfirm: async () => { await deleteWorkpaperRecord(wp.id); setWorkpapers(prev => prev.filter(w => w.id !== wp.id)); toast(`${wp.workpaper_ref} deleted`, 'info') } })} className="text-steel-500 hover:text-red-400 transition-colors"><Trash2 size={13} /></button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-4 py-2 border-t border-navy-700 text-xs text-steel-500">{filtered.length} of {workpapers.length} workpapers — {activeProgramme?.programme_id}</div>
+        </div>
+      )}
+      {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
     </div>
   )
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle2, FileText, Shield, Loader2 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
+import AIPanel from '../../components/AIPanel'
 import { getWorkpapers, getFindings, getRisks, getPBCItems } from '../../lib/supabase'
 
 function KPICard({ label, value, target, unit, trend, desc, color, icon: Icon, loading }) {
@@ -16,6 +17,19 @@ function KPICard({ label, value, target, unit, trend, desc, color, icon: Icon, l
       <div className="text-sm font-medium text-white mb-1">{label}</div>
       {target !== undefined && <div className={`text-xs mb-1 ${met ? 'text-emerald-400' : 'text-red-400'}`}>{met ? '✓' : '✗'} Target: {target}{unit}</div>}
       <div className="text-xs text-steel-400 leading-relaxed">{desc}</div>
+
+        <div className="mt-6">
+          <AIPanel
+            title="AI — Interpret KPI Results & Recommend Actions"
+            systemPrompt="You are an ISO 27004:2016 information security measurement specialist. Analyse KPI results and generate actionable recommendations. Interpret metrics in context of ISO 27001 requirements and industry benchmarks. Produce board-ready KPI commentary and improvement recommendations."
+            placeholder="e.g. CAPA closure rate is 45% (target 80%), 3 critical findings open, 2 risks above appetite — generate executive commentary and action plan"
+            contextFields={[
+              { id: 'kpis', label: 'Current KPI Values', type: 'textarea', placeholder: 'e.g. CAPA closure: 45%, Critical open: 3, PBC receipt: 60%, Risks above appetite: 2' },
+              { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Executive KPI Commentary', 'KPI Improvement Action Plan', 'Board KPI Report', 'KPI Trend Analysis', 'ISO 27004 Measurement Report'] },
+              { id: 'audience', label: 'Audience', type: 'select', options: ['Board / Executive', 'Audit Committee', 'CISO / IT Management', 'Certification Body'] },
+            ]}
+          />
+        </div>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getFindings, updateFinding } from '../../lib/supabase'
+import AIPanel from '../../components/AIPanel'
 import { useToast } from '../../components/Toast'
 
 const ratingColor = { Critical: 'border-l-red-500', High: 'border-l-orange-500', Medium: 'border-l-amber-500', 'Low / Advisory': 'border-l-navy-600' }
@@ -83,6 +84,19 @@ function CAPARow({ finding, onUpdate }) {
           )}
         </div>
       )}
+
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Generate Corrective Action Guidance"
+          systemPrompt="You are an ISO 27001:2022 CAPA specialist. Generate structured corrective action plans for audit findings. Include: root cause analysis (5-Why), corrective action steps, preventive measures, success criteria, and realistic timelines. Align to ISO 27001 Clause 10.2 requirements."
+          placeholder="e.g. Generate a corrective action plan for F-003 High finding: no formal patch management process, 47 critical servers unpatched"
+          contextFields={[
+            { id: 'finding', label: 'Finding Details', type: 'textarea', placeholder: 'Paste finding title, rating, and condition text here...' },
+            { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Corrective Action Plan', 'Root Cause Analysis (5-Why)', 'Management Response Template', 'CAPA Effectiveness Review', 'Preventive Action Plan'] },
+            { id: 'owner', label: 'Action Owner / Team', type: 'text', placeholder: 'e.g. IT Security Manager, Cloud Team' },
+          ]}
+        />
+      </div>
     </div>
   )
 }

@@ -206,6 +206,31 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Programme Health */}
+      {activeProgramme && !loading && stats.workpapers > 0 && (
+        <div className="card">
+          <h2 className="section-title mb-3">Programme Health</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {[
+              { label: 'Findings Closure', value: stats.total > 0 ? Math.round(((stats.total - stats.openFindings) / stats.total) * 100) : 100, color: 'bg-emerald-500', target: 80 },
+              { label: 'PBC Evidence', value: stats.pbcOutstanding > 0 ? Math.round(((stats.workpapers - stats.pbcOutstanding) / stats.workpapers) * 100) : 100, color: 'bg-blue-500', target: 85 },
+              { label: 'Risk Coverage', value: stats.risks > 0 ? Math.round(((stats.risks - stats.risksAboveAppetite) / stats.risks) * 100) : 100, color: 'bg-purple-500', target: 90 },
+            ].map(h => (
+              <div key={h.label}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs text-steel-400">{h.label}</span>
+                  <span className={`text-xs font-bold ${h.value >= h.target ? 'text-emerald-400' : 'text-amber-audit'}`}>{h.value}%</span>
+                </div>
+                <div className="h-2 bg-navy-700 rounded-full overflow-hidden">
+                  <div className={`h-full ${h.color} rounded-full transition-all duration-700`} style={{ width: `${h.value}%` }} />
+                </div>
+                <div className="text-xs text-steel-500 mt-1">Target: {h.target}%</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Quick Access */}
       <div>
         <h2 className="section-title mb-3">Quick Access — All Modules</h2>

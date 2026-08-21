@@ -3,6 +3,7 @@ import { Plus, CheckCircle2, Circle, AlertTriangle, Clock, Loader2, Save } from 
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/Toast'
+import AIPanel from '../../components/AIPanel'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { supabase } from '../../lib/supabase'
 
@@ -186,6 +187,19 @@ export default function FieldworkTracker() {
           <div className="px-4 py-2 border-t border-navy-700 text-xs text-steel-500">{filtered.length} of {items.length} controls — {activeProgramme?.programme_id}</div>
         </div>
       )}
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Generate Workpaper & Test Steps"
+          systemPrompt="You are an ISO 19011:2018 audit fieldwork specialist. Generate structured workpaper titles, TOD/TOI/TOE test steps, and evidence checklists for specific ISO 27001/27002 controls. Include: workpaper reference naming, testing objective, testing approach per phase, population definition for TOE, sample size justification, and expected evidence."
+          placeholder="e.g. Generate a complete TOE workpaper for A.8.8 Vulnerability Management — monthly scan results for 6-month period"
+          contextFields={[
+            { id: 'control', label: 'Control / Clause', type: 'text', placeholder: 'e.g. ISO 27002 A.8.8 — Vulnerability Management' },
+            { id: 'phase', label: 'Phase', type: 'select', options: ['TOD — Test of Design', 'TOI — Test of Implementation', 'TOE — Test of Effectiveness', 'All phases'] },
+            { id: 'stack', label: 'Technology / Tool', type: 'text', placeholder: 'e.g. Qualys, Nessus, AWS Inspector, CrowdStrike' },
+          ]}
+        />
+      </div>
+
       {showModal && <NewControlModal programmeId={activeProgramme?.id} userId={user?.id} onCreated={item => setItems(prev => [...prev, item])} onClose={() => setShowModal(false)} />}
     </div>
   )

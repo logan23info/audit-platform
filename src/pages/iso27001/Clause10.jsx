@@ -1,20 +1,28 @@
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, RefreshCw } from 'lucide-react'
 
 const elements = [
-  { clause: '10.1', title: 'Continual Improvement', desc: 'Continually improve the suitability, adequacy and effectiveness of the ISMS.', items: ['Improvement opportunities identified from audits', 'Management review outputs actioned', 'ISMS maturity progression tracked', 'Improvement actions documented and closed'], artifact: 'Continual Improvement Log' },
-  { clause: '10.2', title: 'Nonconformity & Corrective Action (CAPA)', desc: 'When nonconformity occurs — react, evaluate root cause, and implement corrective action to prevent recurrence.', items: ['Nonconformity documented immediately', 'Immediate containment action taken', 'Root cause analysis performed (5-Why/Fishbone)', 'Corrective action implemented and effectiveness verified'], artifact: 'CAPA Register & Workflow' },
+  { clause: '10.1', title: 'Continual Improvement', color: 'border-l-emerald-500',
+    desc: 'Continually improve the suitability, adequacy, and effectiveness of the ISMS.',
+    items: ['Improvement opportunities identified from audit results, incidents, management review', 'Improvement actions documented, prioritised, and assigned owners', 'Implementation of improvements tracked and verified', 'Effectiveness of improvements evaluated after implementation', 'Improvements to ISMS policies, procedures, and controls documented', 'Lessons learned from incidents and near-misses captured', 'Continual improvement programme presented at management review', 'ISMS maturity assessed against industry benchmarks periodically'], artifact: 'Continual Improvement Register' },
+  { clause: '10.2', title: 'Nonconformity & Corrective Action', color: 'border-l-red-500',
+    desc: 'When a nonconformity occurs, react to control and correct it, evaluate the cause, and take action to prevent recurrence.',
+    items: ['Nonconformities identified from audits, incidents, monitoring, or complaints', 'Immediate containment action taken to control the nonconformity', 'Root cause analysis conducted (5-Why, fishbone, or equivalent method)', 'Corrective action implemented to address root cause — not just symptom', 'Corrective action effectiveness reviewed after implementation', 'ISMS updated where necessary to prevent recurrence', 'Nonconformity and corrective action records retained', 'Similar nonconformities reviewed to identify systemic issues'],
+    ratingGuide: [
+      { rating: 'Major NC', desc: 'Complete absence of a required control or systematic failure across multiple instances' },
+      { rating: 'Minor NC', desc: 'Isolated failure of a control that is otherwise designed and implemented correctly' },
+      { rating: 'Opportunity for Improvement', desc: 'Control working but could be enhanced — not a current failure' },
+      { rating: 'Observation', desc: 'Noted for awareness — no corrective action required' },
+    ],
+    artifact: 'Corrective Action Register' },
 ]
 
-const capaSteps = [
-  { step: '1. Identify', desc: 'Document the nonconformity — from audit, incident, or management review' },
-  { step: '2. Contain', desc: 'Take immediate action to limit the impact or exposure' },
-  { step: '3. Root Cause', desc: 'Apply 5-Why or fishbone analysis to identify the true root cause' },
-  { step: '4. Corrective Action', desc: 'Design corrective action that addresses the root cause — not just the symptom' },
-  { step: '5. Implement', desc: 'Assign owner, set target date, implement the corrective action' },
-  { step: '6. Verify Effectiveness', desc: 'Test that the corrective action has resolved the issue and prevented recurrence' },
-  { step: '7. Close', desc: 'Document closure evidence and close the CAPA in the register' },
+const capaTimelines = [
+  { rating: 'Critical Finding', timeline: '7 days', action: 'Immediate escalation to executive management + emergency remediation' },
+  { rating: 'High Finding', timeline: '30 days', action: 'Root cause analysis + corrective action plan submitted within 14 days' },
+  { rating: 'Medium Finding', timeline: '90 days', action: 'Corrective action plan submitted within 30 days, implementation by day 90' },
+  { rating: 'Low / Advisory', timeline: '180 days', action: 'Management acceptance or improvement plan within 60 days' },
 ]
 
 export default function ISO27001Clause10() {
@@ -23,13 +31,13 @@ export default function ISO27001Clause10() {
       <PageHeader
         standard="ISO 27001:2022"
         clause="Clause 10"
-        title="Improvement & CAPA"
-        description="Clause 10 drives continual improvement of the ISMS — through formal nonconformity management, root cause analysis, and corrective action tracking."
-        badges={['CAPA', 'Improvement', 'Audit Closure']}
+        title="Improvement — Nonconformity & CAPA"
+        description="Clause 10 requires the organisation to react to nonconformities, conduct root cause analysis, implement corrective actions, and continually improve the ISMS. All CAPAs must be tracked to verified closure."
+        badges={['CAPA', 'Improvement', 'TOE']}
       />
       <div className="space-y-4 mb-6">
         {elements.map(el => (
-          <div key={el.clause} className="card border-l-4 border-l-pink-500">
+          <div key={el.clause} className={`card border-l-4 ${el.color}`}>
             <div className="flex flex-col sm:flex-row sm:items-start gap-3">
               <span className="clause-tag flex-shrink-0 self-start">{el.clause}</span>
               <div className="flex-1 min-w-0">
@@ -38,46 +46,63 @@ export default function ISO27001Clause10() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
                   {el.items.map(i => (
                     <div key={i} className="flex items-start gap-2">
-                      <CheckCircle2 size={12} className="text-pink-400 flex-shrink-0 mt-0.5" />
+                      <CheckCircle2 size={12} className="text-emerald-audit flex-shrink-0 mt-0.5" />
                       <span className="text-xs text-steel-300 leading-snug">{i}</span>
                     </div>
                   ))}
                 </div>
+                {el.ratingGuide && (
+                  <div className="bg-navy-800 rounded-lg p-3 mb-3">
+                    <div className="text-xs font-semibold text-steel-400 mb-2">Nonconformity Classification</div>
+                    <div className="space-y-1.5">
+                      {el.ratingGuide.map(r => (
+                        <div key={r.rating} className="flex items-start gap-2">
+                          <span className="text-xs font-semibold text-amber-audit flex-shrink-0 w-32">{r.rating}</span>
+                          <span className="text-xs text-steel-300">{r.desc}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-steel-400">Artifact:</span>
-                  <span className="badge badge-crimson">{el.artifact}</span>
+                  <span className="text-xs text-steel-400">Key Artifact:</span>
+                  <span className="badge badge-amber text-xs">{el.artifact}</span>
                 </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
       <div className="card mb-6">
-        <h2 className="section-title mb-4">CAPA Workflow — 7 Steps</h2>
-        <div className="space-y-3">
-          {capaSteps.map((s, i) => (
-            <div key={i} className="flex items-start gap-3">
-              <div className="flex flex-col items-center flex-shrink-0">
-                <span className="w-7 h-7 rounded-full bg-pink-900/40 border border-pink-700 text-pink-300 text-xs font-bold flex items-center justify-center">{i + 1}</span>
-                {i < capaSteps.length - 1 && <div className="w-0.5 h-4 bg-navy-600 mt-1" />}
-              </div>
-              <div className="pb-3">
-                <div className="text-sm font-semibold text-white mb-0.5">{s.step}</div>
-                <div className="text-xs text-steel-300 leading-snug">{s.desc}</div>
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center gap-2 mb-3">
+          <RefreshCw size={14} className="text-amber-audit" />
+          <h2 className="section-title mb-0">CAPA Closure Timelines</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-navy-700">{['Finding Rating','Required Closure','Corrective Action'].map(h => <th key={h} className="text-left py-2 px-3 text-steel-400 font-medium">{h}</th>)}</tr></thead>
+            <tbody>
+              {capaTimelines.map((r, i) => (
+                <tr key={r.rating} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/20'}`}>
+                  <td className="py-2.5 px-3 font-semibold text-white">{r.rating}</td>
+                  <td className="py-2.5 px-3 text-amber-audit font-mono font-bold">{r.timeline}</td>
+                  <td className="py-2.5 px-3 text-steel-300">{r.action}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
+
       <AIPanel
         title="Generate Clause 10 Artifacts"
-        systemPrompt="You are an ISO 27001:2022 CAPA and continual improvement expert. Generate professional Clause 10 artifacts: CAPA registers, root cause analysis templates (5-Why and fishbone), corrective action workflows, nonconformity reports, and continual improvement logs. CAPA outputs must include all 7 steps from identification through effectiveness verification and formal closure."
-        placeholder="e.g. Generate a CAPA for a High finding — User access reviews not performed for 7 accounts over 12 months"
+        systemPrompt="You are an ISO 27001:2022 Clause 10 improvement specialist. Generate professional CAPA (Corrective and Preventive Action) documentation, root cause analysis workpapers, nonconformity registers, and continual improvement plans. Use ISO 27001:2022 Clause 10 requirements. Apply 5-Why or fishbone root cause methodology. Produce audit-ready, board-level documentation."
+        placeholder="e.g. Generate a root cause analysis workpaper for a finding on incomplete user access reviews using 5-Why methodology"
         contextFields={[
-          { id: 'finding', label: 'Nonconformity / Finding', placeholder: 'Describe the finding or nonconformity', type: 'text' },
-          { id: 'root', label: 'Initial Root Cause Hypothesis', placeholder: 'e.g. No automated reminder, manual process failed', type: 'text' },
-          { id: 'owner', label: 'CAPA Owner', placeholder: 'e.g. IT Security Manager', type: 'text' },
-          { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Full CAPA Report', '5-Why Root Cause Analysis', 'Fishbone Diagram Worksheet', 'CAPA Register Template', 'Corrective Action Plan', 'Effectiveness Verification Checklist', 'Continual Improvement Log'] },
+          { id: 'org', label: 'Organisation', type: 'text', placeholder: 'e.g. ABC Financial Services' },
+          { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['CAPA Register', 'Root Cause Analysis (5-Why)', 'Corrective Action Plan', 'Nonconformity Report', 'Continual Improvement Plan', 'Effectiveness Review Report'] },
+          { id: 'finding', label: 'Finding / Nonconformity', type: 'textarea', placeholder: 'Describe the nonconformity or finding requiring CAPA...' },
         ]}
       />
     </div>

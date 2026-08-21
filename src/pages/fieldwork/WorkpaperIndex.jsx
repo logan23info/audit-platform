@@ -15,6 +15,58 @@ const statusColors = {
 }
 const phaseColors = { TOD: 'bg-blue-900/40 text-blue-300', TOI: 'bg-purple-900/40 text-purple-300', TOE: 'bg-emerald-900/40 text-emerald-300' }
 
+
+function SignOffModal({ wp, onSignOff, onClose }) {
+  const { toast } = useToast()
+  const [auditor, setAuditor] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!auditor) return
+    setSaving(true)
+    try {
+      const updated = await updateWorkpaper(wp.id, {
+        status: 'Signed Off',
+        auditor,
+        notes: wp.notes ? `${wp.notes} | Signed off by ${auditor} on ${date}` : `Signed off by ${auditor} on ${date}`,
+      })
+      onSignOff(updated)
+      toast(`${wp.workpaper_ref} signed off by ${auditor}`)
+      onClose()
+    } catch (e) { toast('Sign-off failed', 'error') }
+    setSaving(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-navy-900 border border-navy-600 rounded-2xl w-full max-w-sm">
+        <div className="p-5 border-b border-navy-700 flex items-center justify-between">
+          <h2 className="font-semibold text-white">Sign Off {wp.workpaper_ref}</h2>
+          <button onClick={onClose} className="text-steel-400 text-lg">×</button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="bg-navy-800 rounded-lg p-3 text-xs text-steel-300">{wp.title}</div>
+          <div>
+            <label className="block text-xs text-steel-400 mb-1">Auditor Name *</label>
+            <input className="input-field" placeholder="e.g. Logan — Lead Auditor" value={auditor} onChange={e => setAuditor(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-xs text-steel-400 mb-1">Sign-Off Date</label>
+            <input className="input-field" type="date" value={date} onChange={e => setDate(e.target.value)} />
+          </div>
+          <div className="flex gap-2">
+            <button onClick={save} disabled={saving || !auditor} className="btn-primary flex-1 justify-center">
+              {saving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : '✓ Sign Off'}
+            </button>
+            <button onClick={onClose} className="btn-secondary">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function WorkpaperIndex() {
   const { activeProgramme } = useProgramme()
   const [workpapers, setWorkpapers] = useState([])
@@ -26,6 +78,7 @@ export default function WorkpaperIndex() {
   const { toast } = useToast()
   const [saving, setSaving] = useState(false)
   const [confirmDel, setConfirmDel] = useState(null)
+  const [signoffModal, setSignoffModal] = useState(null)
 
   const load = useCallback(async () => {
     if (!activeProgramme) return
@@ -148,7 +201,8 @@ export default function WorkpaperIndex() {
           <div className="px-4 py-2 border-t border-navy-700 text-xs text-steel-500">{filtered.length} of {workpapers.length} workpapers — {activeProgramme?.programme_id}</div>
         </div>
       )}
-      {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
+      {signoffModal && <SignOffModal wp={signoffModal} onSignOff={u => setWorkpapers(prev => prev.map(w => w.id === u.id ? u : w))} onClose={() => setSignoffModal(null)} />
+      }{confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
     </div>
   )
 }

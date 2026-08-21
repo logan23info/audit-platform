@@ -6,6 +6,7 @@ import { useProgramme } from '../../context/ProgrammeContext'
 import { getFindings, createFinding, updateFinding, deleteFinding } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import ConfirmModal from '../../components/ConfirmModal'
+import AIPanel from '../../components/AIPanel'
 import { exportToCSV, FINDING_COLUMNS } from '../../utils/exportCSV'
 
 const ratingConfig = {
@@ -310,6 +311,20 @@ export default function FindingRegister() {
           ))}
         </div>
       )}
+
+      {/* AI panel for generating findings */}
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Generate Finding (4Cs Framework)"
+          systemPrompt="You are an ISO 27001:2022 IT audit specialist. Generate a complete finding using the 4Cs framework: Condition (what you found — factual observation), Criteria (what the standard/policy requires), Cause (root cause using 5-Why analysis), Consequence (risk or impact if not remediated). Also suggest a rating (Critical/High/Medium/Low), agreed action, and realistic due date. Format clearly with each C on its own line."
+          placeholder="e.g. Generate a High finding for ISO 27001 A.8.8 — no formal patch management process, critical servers unpatched for 180+ days"
+          contextFields={[
+            { id: 'control', label: 'Control / Clause', type: 'text', placeholder: 'e.g. ISO 27001 A.8.8 — Vulnerability Management' },
+            { id: 'observation', label: 'What You Observed', type: 'textarea', placeholder: 'e.g. Patch scan shows 47 critical servers with CVEs > 90 days old. No formal patch schedule exists.' },
+            { id: 'rating', label: 'Expected Rating', type: 'select', options: ['Critical', 'High', 'Medium', 'Low / Advisory'] },
+          ]}
+        />
+      </div>
 
       {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
       {showModal && (

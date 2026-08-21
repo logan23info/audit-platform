@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getRisks, createRisk, updateRisk, deleteRisk } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
+import AIPanel from '../../components/AIPanel'
 import { exportToCSV, RISK_COLUMNS } from '../../utils/exportCSV'
 import ConfirmModal from '../../components/ConfirmModal'
 
@@ -169,6 +170,19 @@ export default function RiskRegisterLive() {
       )}
       {confirmDel && <ConfirmModal {...confirmDel} onClose={() => setConfirmDel(null)} />}
       {showModal && <NewRiskModal programmeId={activeProgramme?.id} userId={user?.id} onCreated={r => setRisks(p => [...p, r])} onClose={() => setShowModal(false)} />}
+
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Risk Assessment & Treatment Guidance"
+          systemPrompt="You are an ISO 27005:2022 risk assessment specialist. Generate risk assessment workpapers, suggest ISO 27002 controls for specific risks, produce risk treatment justifications, and create risk acceptance statements. Use Asset × Threat × Vulnerability methodology."
+          placeholder="e.g. Generate a risk assessment for ransomware threat against customer PII database on AWS RDS"
+          contextFields={[
+            { id: 'risk', label: 'Risk Scenario', type: 'textarea', placeholder: 'e.g. Asset: Customer DB, Threat: Ransomware, Vulnerability: Unpatched OS' },
+            { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Risk Assessment Workpaper', 'Control Recommendations', 'Risk Treatment Justification', 'Risk Acceptance Statement', 'Residual Risk Summary'] },
+            { id: 'org', label: 'Organisation Context', type: 'text', placeholder: 'e.g. AWS cloud, financial services, GDPR applicable' },
+          ]}
+        />
+      </div>
     </div>
   )
 }

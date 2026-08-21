@@ -4,6 +4,7 @@ import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { supabase } from '../../lib/supabase'
+import AIPanel from '../../components/AIPanel'
 import { useToast } from '../../components/Toast'
 
 const riskColors = { High: 'bg-red-900/30 text-red-300', Medium: 'bg-amber-900/30 text-amber-300', Low: 'bg-navy-700 text-steel-400' }
@@ -128,6 +129,19 @@ export default function AuditUniverseLive() {
         </div>
       )}
       {showModal && <NewEntryModal programmeId={activeProgramme?.id} userId={user?.id} onCreated={e => setEntries(prev => [...prev, e])} onClose={() => setShowModal(false)} />}
+
+      <div className="mt-6">
+        <AIPanel
+          title="AI — Generate Annual Audit Plan"
+          systemPrompt="You are an ISO 19011:2018 audit programme specialist. Generate detailed annual audit plans, audit schedules, resource plans, and individual audit mandates. Align to ISO 19011 Clause 5 programme management requirements. Include risk-based prioritisation."
+          placeholder="e.g. Generate a 12-month risk-based audit schedule for an ISO 27001 certified fintech with 8 audit areas"
+          contextFields={[
+            { id: 'areas', label: 'Audit Areas', type: 'textarea', placeholder: 'List your audit areas from the universe above...' },
+            { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Annual Audit Schedule', 'Risk-Based Audit Plan', 'Individual Audit Mandate', 'Resource Allocation Plan', 'Audit Programme Objectives'] },
+            { id: 'resources', label: 'Available Resources', type: 'text', placeholder: 'e.g. 2 auditors, 60 audit days per year' },
+          ]}
+        />
+      </div>
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Skeleton, SkeletonCard } from '../components/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Shield, BarChart3, FileText, AlertTriangle, CheckCircle2, Clock, FolderOpen, Zap, TrendingUp, Activity, Database } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'

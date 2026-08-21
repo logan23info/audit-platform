@@ -231,6 +231,49 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Recent Activity */}
+      {activeProgramme && (
+        <div className="card">
+          <h2 className="section-title mb-3">Recent Activity</h2>
+          {loading ? <Skeleton rows={4} /> : (
+            <div className="space-y-2">
+              {[
+                ...findings.slice(0,2).map(f => ({
+                  icon: '⚠️', label: `Finding raised — ${f.finding_ref}: ${f.title}`,
+                  sub: f.rating, color: 'text-red-400', time: f.created_at
+                })),
+                ...risks.slice(0,2).map(r => ({
+                  icon: '🛡️', label: `Risk logged — ${r.risk_ref}: ${r.asset}`,
+                  sub: `Score ${r.inherent_score}`, color: 'text-amber-audit', time: r.created_at
+                })),
+                ...workpapers.slice(0,2).map(w => ({
+                  icon: '📋', label: `Workpaper — ${w.workpaper_ref}: ${w.title}`,
+                  sub: w.status, color: 'text-blue-400', time: w.created_at
+                })),
+              ]
+              .filter(a => a.time)
+              .sort((a,b) => new Date(b.time) - new Date(a.time))
+              .slice(0,5)
+              .map((a, i) => (
+                <div key={i} className="flex items-center gap-3 py-2 border-b border-navy-800 last:border-0">
+                  <span className="text-base flex-shrink-0">{a.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs text-white truncate">{a.label}</div>
+                    <div className={`text-xs ${a.color}`}>{a.sub}</div>
+                  </div>
+                  <div className="text-xs text-steel-500 flex-shrink-0">
+                    {new Date(a.time).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </div>
+                </div>
+              ))}
+              {findings.length === 0 && risks.length === 0 && workpapers.length === 0 && (
+                <div className="text-xs text-steel-500 text-center py-4">No activity yet — start by raising a finding or logging a risk</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Quick Access */}
       <div>
         <h2 className="section-title mb-3">Quick Access — All Modules</h2>

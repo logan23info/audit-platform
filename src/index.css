@@ -370,3 +370,37 @@ select.input-field {
 }
 .toast-enter { animation: slide-in 0.25s ease forwards; }
 .toast-exit { animation: slide-out 0.25s ease forwards; }
+
+/* ── Print CSS ────────────────────────────────────────── */
+@media print {
+  /* Hide navigation and controls */
+  aside, header, .btn-primary, .btn-secondary,
+  .ai-panel, button:not(.print-show),
+  .badge-steel, nav { display: none !important; }
+
+  /* Full width content */
+  body { background: white !important; color: black !important; }
+  main { padding: 0 !important; }
+  .card { border: 1px solid #e2e8f0 !important; background: white !important; break-inside: avoid; }
+  .card-sm { border: 1px solid #e2e8f0 !important; background: #f8fafc !important; }
+
+  /* Text colours for print */
+  .text-white { color: #0f172a !important; }
+  .text-steel-300, .text-steel-400 { color: #475569 !important; }
+  .text-amber-audit { color: #d97706 !important; }
+  .text-emerald-400 { color: #059669 !important; }
+  .text-red-400 { color: #dc2626 !important; }
+
+  /* Pre/code blocks */
+  pre { background: #f8fafc !important; color: #334155 !important; border: 1px solid #e2e8f0 !important; white-space: pre-wrap !important; font-size: 10px !important; }
+
+  /* Page breaks */
+  .card { page-break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; }
+
+  /* Show page header clearly */
+  .page-title { font-size: 20pt !important; }
+
+  /* Report builder specific */
+  #main-content { max-width: 100% !important; }
+}

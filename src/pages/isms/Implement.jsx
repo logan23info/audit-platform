@@ -8,6 +8,10 @@ import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
 import { getSoA, getISMSImplementation, upsertISMSControl } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
+import { debounce } from '../../lib/debounce'
+
+const debouncedSave = debounce((fn) => fn(), 600)
+const TEXT_FIELDS = ['policy_ref', 'owner', 'notes', 'evidence_url']
 
 // Truth table — implementation status classification (Sprint 2 plan)
 // SoA Applicable | Impl Status  | Evidence | -> Display
@@ -60,14 +64,22 @@ export default function ISMSImplement() {
 
   useEffect(() => { load() }, [load])
 
-  const update = (ref, field, value) => {
-    setImplData(p => ({ ...p, [ref]: { ...p[ref], [field]: value } }))
+  const persist = (ref, row) => {
     if (!activeProgramme) return
     setSavingRef(ref)
-    const row = { ...implData[ref], [field]: value }
     upsertISMSControl({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...row, target_date: row.target_date || null })
       .catch(e => toast('Save failed — ' + ref + ': ' + e.message, 'error'))
       .finally(() => setSavingRef(null))
+  }
+
+  const update = (ref, field, value) => {
+    const row = { ...implData[ref], [field]: value }
+    setImplData(p => ({ ...p, [ref]: row }))
+    if (TEXT_FIELDS.includes(field)) {
+      debouncedSave(ref, () => persist(ref, row))
+    } else {
+      persist(ref, row)
+    }
   }
 
   // Layer 2 reads Layer 1 (SoA) applicability as source of truth — non-applicable controls excluded

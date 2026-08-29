@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Shield, BarChart3, FileText, AlertTriangle, CheckCircle2, Clock, FolderOpen, Zap, TrendingUp, Activity, Database } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProgramme } from '../context/ProgrammeContext'
-import { getWorkpapers, getFindings, getRisks, getPBCItems } from '../lib/supabase'
+import { getWorkpapers, getFindings, getRisks, getPBCItems, getSoA, getISMSImplementation } from '../lib/supabase'
+import { controls as annexAControls } from '../data/iso27002_controls'
 
 const quickAccess = [
   { label: 'Clause 4 — Principles', path: '/iso19011/clause4', tag: 'ISO 19011', color: 'border-amber-audit/30 hover:border-amber-audit/60' },
@@ -44,6 +45,19 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [recentWorkpapers, setRecentWorkpapers] = useState([])
   const [recentFindings, setRecentFindings] = useState([])
+  const [isms, setIsms] = useState({ applicable: 0, verified: 0, total: annexAControls.length })
+
+  useEffect(() => {
+    if (!activeProgramme) return
+    // Separate, non-blocking fetch — ISMS readiness must never delay or break existing dashboard stats
+    getSoA(activeProgramme.id).then(soaRows => {
+      const applicable = soaRows.filter(r => r.applicable === 'Yes').length
+      return getISMSImplementation(activeProgramme.id).then(implRows => {
+        const verified = implRows.filter(r => r.status === 'Implemented' && r.evidence_url).length
+        setIsms({ applicable, verified, total: annexAControls.length })
+      })
+    }).catch(() => {})
+  }, [activeProgramme])
 
   useEffect(() => {
     if (!activeProgramme) return
@@ -228,6 +242,23 @@ export default function Dashboard() {
                 <div className="text-xs text-steel-500 mt-1">Target: {h.target}%</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ISMS Readiness */}
+      {activeProgramme && isms.applicable > 0 && (
+        <div className="card">
+          <div className="flex items-center justify-between mb-1.5">
+            <h2 className="section-title mb-0">ISMS Readiness</h2>
+            <button onClick={() => navigate('/isms')} className="text-xs text-steel-400 hover:text-white inline-flex items-center gap-1">Open <ArrowRight size={11} /></button>
+          </div>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs text-steel-400">{isms.verified} of {isms.applicable} applicable controls verified ({isms.total} total)</span>
+            <span className="text-xs font-bold text-emerald-400">{Math.round((isms.verified / isms.applicable) * 100)}%</span>
+          </div>
+          <div className="h-2 bg-navy-700 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-500 rounded-full transition-all duration-700" style={{ width: `${Math.round((isms.verified / isms.applicable) * 100)}%` }} />
           </div>
         </div>
       )}

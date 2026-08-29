@@ -6,8 +6,12 @@ import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, upsertSoAControl } from '../../lib/supabase'
+import { getSoA, upsertSoAControl, getISMSImplementation } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
+import { debounce } from '../../lib/debounce'
+
+const debouncedSave = debounce((fn) => fn(), 600)
+const TEXT_FIELDS = ['justification', 'exclusion_reason', 'notes']
 
 const SOA_COLUMNS = [
   { label: 'Control Ref', key: 'ref' }, { label: 'Control Title', key: 'title' },
@@ -24,6 +28,7 @@ export default function SoA() {
   const { activeProgramme } = useProgramme()
   const { toast } = useToast()
   const [soaData, setSoaData] = useState(() => controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyRow() }), {}))
+  const [evidenceMap, setEvidenceMap] = useState({}) // control_id -> has Layer 2 evidence, for the applicability-flip safeguard
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
   const [filterTheme, setFilterTheme] = useState('All')
@@ -35,32 +40,43 @@ export default function SoA() {
     if (!activeProgramme) return
     setLoading(true)
     try {
-      const rows = await getSoA(activeProgramme.id)
+      const [rows, implRows] = await Promise.all([getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id)])
       const byRef = controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyRow() }), {})
       rows.forEach(r => { byRef[r.control_id] = { applicable: r.applicable, justification: r.justification || '', exclusion_reason: r.exclusion_reason || '', status: r.status, notes: r.notes || '' } })
       setSoaData(byRef)
+      const ev = {}
+      implRows.forEach(r => { if (r.evidence_url) ev[r.control_id] = true })
+      setEvidenceMap(ev)
     } catch (e) { toast('Failed to load SoA: ' + e.message, 'error') }
     setLoading(false)
   }, [activeProgramme])
 
   useEffect(() => { load() }, [load])
 
-  // Truth table: applicable=No -> status forced Not Applicable; applicable=Yes & status was Not Applicable -> reset to Planned
-  const update = (ref, field, value) => {
-    setSoaData(p => {
-      const row = { ...p[ref], [field]: value }
-      if (field === 'applicable' && value === 'No') row.status = 'Not Applicable'
-      if (field === 'applicable' && value === 'Yes' && row.status === 'Not Applicable') row.status = 'Planned'
-      return { ...p, [ref]: row }
-    })
+  const persist = (ref, row) => {
     if (!activeProgramme) return
     setSavingRef(ref)
-    const row = { ...soaData[ref], [field]: value }
-    if (field === 'applicable' && value === 'No') row.status = 'Not Applicable'
-    if (field === 'applicable' && value === 'Yes' && row.status === 'Not Applicable') row.status = 'Planned'
     upsertSoAControl({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...row })
       .catch(e => toast('Save failed — ' + ref + ': ' + e.message, 'error'))
       .finally(() => setSavingRef(null))
+  }
+
+  // Truth table: applicable=No -> status forced Not Applicable; applicable=Yes & status was Not Applicable -> reset to Planned
+  const update = (ref, field, value) => {
+    // Safeguard: flipping to Not Applicable after Layer 2 evidence was attached would silently exclude verified evidence — confirm first
+    if (field === 'applicable' && value === 'No' && evidenceMap[ref]) {
+      const ok = window.confirm(`${ref} already has implementation evidence attached in ISMS Implementation. Marking it Not Applicable will exclude it from Layer 2 tracking. Continue?`)
+      if (!ok) return
+    }
+    const row = { ...soaData[ref], [field]: value }
+    if (field === 'applicable' && value === 'No') row.status = 'Not Applicable'
+    if (field === 'applicable' && value === 'Yes' && row.status === 'Not Applicable') row.status = 'Planned'
+    setSoaData(p => ({ ...p, [ref]: row }))
+    if (TEXT_FIELDS.includes(field)) {
+      debouncedSave(ref, () => persist(ref, row))
+    } else {
+      persist(ref, row)
+    }
   }
 
   const filtered = controls.filter(c =>

@@ -9,7 +9,7 @@ const faqs = [
     items: [
       {
         q: 'What is AuditIQ and who is it for?',
-        a: 'AuditIQ is a free, AI-powered IT audit engineering platform for IT auditors, information security professionals, and compliance managers. It covers the full audit lifecycle across ISO 19011, ISO 27001, ISO 27002, ISO 27005, ISO 9001, and IMS. Every module generates tailored audit artifacts using the Groq AI engine — free, no credit card needed.'
+        a: 'AuditIQ is a free, AI-powered ISMS audit engineering platform for IT auditors, information security professionals, and compliance managers. It covers the full audit lifecycle across ISO 19011, ISO 27001, ISO 27002, and ISO 27005. Every module generates tailored audit artifacts using the Groq AI engine — free, no credit card needed.'
       },
       {
         q: 'How do I start my first audit?',

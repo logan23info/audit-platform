@@ -164,7 +164,7 @@ function NewFindingModal({ programmeId, userId, onCreated, onClose }) {
             <div>
               <label className="block text-xs text-steel-400 mb-1">Standard</label>
               <select className="input-field" value={form.standard} onChange={e => setForm(p => ({ ...p, standard: e.target.value }))}>
-                {['ISO 27001', 'ISO 27002', 'ISO 27005', 'ISO 9001', 'ISO 19011'].map(s => <option key={s}>{s}</option>)}
+                {['ISO 27001', 'ISO 27002', 'ISO 27005', 'ISO 19011'].map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
             <div>

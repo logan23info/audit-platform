@@ -41,7 +41,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const { profile } = useAuth()
   const { activeProgramme, programmes } = useProgramme()
-  const [stats, setStats] = useState({ workpapers: 0, findings: 0, openFindings: 0, risks: 0, risksAboveAppetite: 0, pbcOutstanding: 0 })
+  const [stats, setStats] = useState({ workpapers: 0, findings: 0, openFindings: 0, overdueFindings: 0, dueSoonFindings: 0, risks: 0, risksAboveAppetite: 0, pbcOutstanding: 0 })
   const [loading, setLoading] = useState(false)
   const [recentWorkpapers, setRecentWorkpapers] = useState([])
   const [recentFindings, setRecentFindings] = useState([])
@@ -70,10 +70,14 @@ export default function Dashboard() {
           getRisks(activeProgramme.id),
           getPBCItems(activeProgramme.id),
         ])
+        const isOverdue = f => f.due_date && new Date(f.due_date) < new Date() && f.status !== 'Closed'
+        const isDueSoon = f => f.due_date && !isOverdue(f) && f.status !== 'Closed' && (new Date(f.due_date) - new Date()) / 86400000 <= 14
         setStats({
           workpapers: wps.length,
           findings: findings.length,
           openFindings: findings.filter(f => f.status === 'Open').length,
+          overdueFindings: findings.filter(isOverdue).length,
+          dueSoonFindings: findings.filter(isDueSoon).length,
           risks: risks.length,
           risksAboveAppetite: risks.filter(r => (r.residual_score || r.residual_likelihood * r.residual_impact) >= 12).length,
           pbcOutstanding: pbc.filter(p => p.status !== 'Received').length,
@@ -242,6 +246,36 @@ export default function Dashboard() {
                 <div className="text-xs text-steel-500 mt-1">Target: {h.target}%</div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Engagement Status — glance rollup, reuses findings already fetched above, no extra query */}
+      {activeProgramme && !loading && stats.findings > 0 && (stats.overdueFindings > 0 || stats.dueSoonFindings > 0) && (
+        <div className="card border-l-4 border-l-red-500">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="section-title mb-0">Engagement Status — Needs Attention</h2>
+            <button onClick={() => navigate('/reporting/capa')} className="text-xs text-amber-audit hover:text-amber-300 flex items-center gap-1">Open CAPA Tracker <ArrowRight size={11} /></button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {stats.overdueFindings > 0 && (
+              <div className="bg-navy-800 rounded-lg p-3 flex items-center gap-3">
+                <AlertTriangle size={18} className="text-red-400 flex-shrink-0" />
+                <div>
+                  <div className="text-sm font-bold text-red-400">{stats.overdueFindings} overdue</div>
+                  <div className="text-xs text-steel-400">Findings past their due date, still open</div>
+                </div>
+              </div>
+            )}
+            {stats.dueSoonFindings > 0 && (
+              <div className="bg-navy-800 rounded-lg p-3 flex items-center gap-3">
+                <Clock size={18} className="text-amber-audit flex-shrink-0" />
+                <div>
+                  <div className="text-sm font-bold text-amber-audit">{stats.dueSoonFindings} due within 14 days</div>
+                  <div className="text-xs text-steel-400">Open findings approaching their due date</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

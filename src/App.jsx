@@ -52,6 +52,7 @@ const ISMSLanding = lazy_(() => import('./pages/isms/Landing'))
 const ISMSImplement = lazy_(() => import('./pages/isms/Implement'))
 const ISMSHistory = lazy_(() => import('./pages/isms/History'))
 const ISMSScopeRegister = lazy_(() => import('./pages/isms/ScopeRegister'))
+const ISMSRCM = lazy_(() => import('./pages/isms/RCM'))
 const ISMSAudit = lazy_(() => import('./pages/fieldwork/ISMSAudit'))
 const Organizational = lazy_(() => import('./pages/iso27002/Organizational'))
 const People = lazy_(() => import('./pages/iso27002/People'))
@@ -131,6 +132,7 @@ function AppShell() {
               <Route path="/isms/implement" element={<ISMSImplement />} />
               <Route path="/isms/history" element={<ISMSHistory />} />
               <Route path="/isms/scope" element={<ISMSScopeRegister />} />
+              <Route path="/isms/rcm" element={<ISMSRCM />} />
               <Route path="/fieldwork/isms-audit" element={<ISMSAudit />} />
               <Route path="/iso27002" element={<Navigate to="/iso27002/organizational" replace />} />
               <Route path="/iso27002/organizational" element={<Organizational />} />

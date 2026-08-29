@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { CheckCircle2, X, FileDown, Filter, Loader2 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
@@ -12,7 +12,8 @@ import { debounce } from '../../lib/debounce'
 
 const debouncedSave = debounce((fn) => fn(), 600)
 const TEXT_FIELDS = ['justification', 'exclusion_reason', 'notes']
-const HISTORY_FIELDS = ['applicable', 'status']
+// Sprint 7: justification/exclusion_reason now versioned too, not just status fields
+const HISTORY_FIELDS = ['applicable', 'status', 'justification', 'exclusion_reason']
 
 const SOA_COLUMNS = [
   { label: 'Control Ref', key: 'ref' }, { label: 'Control Title', key: 'title' },
@@ -34,6 +35,9 @@ export default function SoA() {
   const [controlSites, setControlSites] = useState({}) // control_id -> [{id, site_id, site_name}]
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
+  // Sprint 7: snapshot of last-persisted values per control, used to diff at save-time (not per-keystroke)
+  // so debounced text fields (justification/exclusion_reason) log one history row per settled edit, not per keystroke.
+  const lastSavedRef = useRef({})
   const [filterTheme, setFilterTheme] = useState('All')
   const [filterApplicable, setFilterApplicable] = useState('All')
   const [filterNew, setFilterNew] = useState(false)
@@ -47,6 +51,7 @@ export default function SoA() {
       const byRef = controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyRow() }), {})
       rows.forEach(r => { byRef[r.control_id] = { applicable: r.applicable, justification: r.justification || '', exclusion_reason: r.exclusion_reason || '', status: r.status, notes: r.notes || '' } })
       setSoaData(byRef)
+      lastSavedRef.current = byRef
       const ev = {}
       implRows.forEach(r => { if (r.evidence_url) ev[r.control_id] = true })
       setEvidenceMap(ev)
@@ -61,10 +66,25 @@ export default function SoA() {
 
   useEffect(() => { load() }, [load])
 
-  const persist = (ref, row) => {
+  const persist = (ref, row, reason = null) => {
     if (!activeProgramme) return
     setSavingRef(ref)
+    const prev = lastSavedRef.current[ref] || emptyRow()
     upsertSoAControl({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...row })
+      .then(() => {
+        // Diff against last-persisted snapshot, not per-keystroke state — so debounced text
+        // fields log one settled history row instead of one per keystroke.
+        HISTORY_FIELDS.forEach(field => {
+          if ((prev[field] ?? null) !== (row[field] ?? null)) {
+            logControlHistory({
+              programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'soa',
+              field, old_value: prev[field] ?? null, new_value: row[field] ?? null,
+              reason: field === 'applicable' ? reason : null,
+            }).catch(() => {})
+          }
+        })
+        lastSavedRef.current[ref] = row
+      })
       .catch(e => toast('Save failed — ' + ref + ': ' + e.message, 'error'))
       .finally(() => setSavingRef(null))
   }
@@ -86,14 +106,12 @@ export default function SoA() {
     if (field === 'applicable' && value === 'Yes' && row.status === 'Not Applicable') row.status = 'Planned'
     setSoaData(p => ({ ...p, [ref]: row }))
     if (TEXT_FIELDS.includes(field)) {
-      debouncedSave(ref, () => persist(ref, row))
+      debouncedSave(ref, () => persist(ref, row, reason))
     } else {
-      persist(ref, row)
+      persist(ref, row, reason)
     }
-    // Control retirement/versioning trail — only material fields, only on real change
-    if (HISTORY_FIELDS.includes(field) && oldValue !== value && activeProgramme) {
-      logControlHistory({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'soa', field, old_value: oldValue ?? null, new_value: value, reason }).catch(() => {})
-    }
+    // History is now logged inside persist() itself, diffed against the last-persisted
+    // snapshot — see lastSavedRef above. This covers debounced text fields correctly.
     // Retirement cascade: archive (not delete) Layer 2 + risk-control-map rows; unarchive on reactivation
     if (field === 'applicable' && oldValue !== value && activeProgramme) {
       archiveControl(activeProgramme.id, ref, value === 'No').catch(() => {})

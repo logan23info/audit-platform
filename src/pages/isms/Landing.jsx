@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckSquare, ClipboardList, ShieldCheck, Loader2, Map, History } from 'lucide-react'
+import { CheckSquare, ClipboardList, ShieldCheck, Loader2, Map, History, Table } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getSoA, getISMSImplementation } from '../../lib/supabase'
@@ -67,7 +67,12 @@ export default function ISMSLanding() {
         </Link>
       </div>
 
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
+        <Link to="/isms/rcm" className="card hover:border-steel-500 transition-colors">
+          <Table size={20} className="text-cyan-400 mb-2" />
+          <div className="font-semibold text-white mb-1">Risk Control Matrix ⭐</div>
+          <div className="text-xs text-steel-400">Single working paper — risk links, implementation status, sample size, test result, and conclusion per control.</div>
+        </Link>
         <Link to="/isms/scope" className="card hover:border-steel-500 transition-colors">
           <Map size={20} className="text-purple-400 mb-2" />
           <div className="font-semibold text-white mb-1">Multi-site Scope Register</div>

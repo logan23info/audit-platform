@@ -3,7 +3,8 @@ import { BarChart2, CheckCircle2, AlertTriangle, TrendingUp, Loader2, FileText }
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
 import { useProgramme } from '../../context/ProgrammeContext'
-import { getFindings, getRisks, getWorkpapers } from '../../lib/supabase'
+import { getFindings, getRisks, getWorkpapers, getSoA, getISMSImplementation } from '../../lib/supabase'
+import { controls as annexAControls } from '../../data/iso27002_controls'
 
 const inputs = [
   { id: 'audit-results', label: 'Results of Audits', icon: FileText, desc: 'Internal audit findings and external audit outcomes from the period under review.' },
@@ -29,6 +30,7 @@ export default function ManagementReview() {
   const [findings, setFindings] = useState([])
   const [risks, setRisks] = useState([])
   const [workpapers, setWorkpapers] = useState([])
+  const [isms, setIsms] = useState({ applicable: 0, verified: 0, exceptions: 0 })
   const [loading, setLoading] = useState(false)
   const [completedInputs, setCompletedInputs] = useState({})
 
@@ -36,8 +38,19 @@ export default function ManagementReview() {
     if (!activeProgramme) return
     setLoading(true)
     try {
-      const [f, r, w] = await Promise.all([getFindings(activeProgramme.id), getRisks(activeProgramme.id), getWorkpapers(activeProgramme.id)])
+      const [f, r, w, soaRows, implRows] = await Promise.all([
+        getFindings(activeProgramme.id), getRisks(activeProgramme.id), getWorkpapers(activeProgramme.id),
+        getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id),
+      ])
       setFindings(f); setRisks(r); setWorkpapers(w)
+      const soaMap = Object.fromEntries(soaRows.map(s => [s.control_id, s.applicable]))
+      const implMap = Object.fromEntries(implRows.map(i => [i.control_id, i]))
+      const applicableRefs = annexAControls.filter(c => (soaMap[c.ref] ?? 'Yes') === 'Yes').map(c => c.ref)
+      setIsms({
+        applicable: applicableRefs.length,
+        verified: applicableRefs.filter(ref => implMap[ref]?.status === 'Implemented' && implMap[ref]?.evidence_url).length,
+        exceptions: applicableRefs.filter(ref => ['Exception', 'Fail'].includes(implMap[ref]?.test_result)).length,
+      })
     } catch (e) { console.error(e) }
     setLoading(false)
   }, [activeProgramme])
@@ -51,6 +64,7 @@ export default function ManagementReview() {
     risksAbove: risks.filter(r => (r.residual_score || r.residual_likelihood * r.residual_impact) >= 12).length,
     capaRate: findings.length > 0 ? Math.round((findings.filter(f => f.status === 'Closed').length / findings.length) * 100) : 100,
     wpComplete: workpapers.length > 0 ? Math.round((workpapers.filter(w => w.status === 'Signed Off').length / workpapers.length) * 100) : 0,
+    ismsReadiness: isms.applicable > 0 ? Math.round((isms.verified / isms.applicable) * 100) : 0,
   }
 
   return (
@@ -79,6 +93,8 @@ export default function ManagementReview() {
                 { label: 'Risks Above Appetite', value: stats.risksAbove, color: stats.risksAbove > 0 ? 'text-amber-audit' : 'text-emerald-400' },
                 { label: 'CAPA Closure Rate', value: `${stats.capaRate}%`, color: stats.capaRate >= 80 ? 'text-emerald-400' : 'text-red-400' },
                 { label: 'Workpapers Complete', value: `${stats.wpComplete}%`, color: stats.wpComplete >= 80 ? 'text-emerald-400' : 'text-amber-audit' },
+                { label: 'ISMS Readiness', value: `${stats.ismsReadiness}%`, color: stats.ismsReadiness >= 80 ? 'text-emerald-400' : 'text-amber-audit' },
+                { label: 'Control Exceptions/Failures', value: isms.exceptions, color: isms.exceptions > 0 ? 'text-red-400' : 'text-emerald-400' },
               ].map(s => (
                 <div key={s.label} className="card-sm text-center">
                   <div className={`font-display text-xl font-bold mb-1 ${s.color}`}>{s.value}</div>
@@ -146,6 +162,8 @@ Live ISMS Data Context:
 - CAPA Closure Rate: ${stats.capaRate}%
 - Risks Above Appetite: ${stats.risksAbove}
 - Workpaper Completion: ${stats.wpComplete}%
+- ISMS Readiness: ${stats.ismsReadiness}% (${isms.verified} of ${isms.applicable} applicable Annex A controls verified)
+- Control Exceptions/Failures from RCM testing: ${isms.exceptions}
 - Audit Programme: ${activeProgramme?.programme_id || 'Not selected'}`}
         placeholder="e.g. Generate a complete Q4 management review pack for board presentation including all ISO 27001 Cl. 9.3 mandatory inputs and outputs"
         contextFields={[

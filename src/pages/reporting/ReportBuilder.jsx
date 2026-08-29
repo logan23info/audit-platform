@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { FileText, Send, Loader2, Download, Copy, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
-import { getFindings, getRisks } from '../../lib/supabase'
+import { getFindings, getRisks, getSoA, getISMSImplementation } from '../../lib/supabase'
+import { controls as annexAControls } from '../../data/iso27002_controls'
 
 async function callAI(systemPrompt, userMessage) {
   const groqKey = import.meta.env.VITE_GROQ_API_KEY
@@ -22,6 +23,7 @@ const sections = [
   { id: 'scope', label: 'Audit Scope & Methodology', icon: '🎯', desc: 'Standards audited, methodology (TOD/TOI/TOE), and period' },
   { id: 'findings', label: 'Findings Summary', icon: '⚠️', desc: 'All findings with 4Cs, ratings, and management responses' },
   { id: 'positive', label: 'Areas of Good Practice', icon: '✅', desc: 'Controls operating effectively and strengths observed' },
+  { id: 'controls', label: 'Control Testing Summary', icon: '🛡️', desc: 'RCM results — sample sizes, test outcomes, and exceptions by Annex A control' },
   { id: 'conclusion', label: 'Conclusion & Opinion', icon: '🏁', desc: 'Overall ISMS effectiveness opinion and audit sign-off' },
   { id: 'full', label: 'Full Audit Report', icon: '📄', desc: 'Complete ISO 19011 Cl. 6.5 report — all sections combined' },
 ]
@@ -32,6 +34,7 @@ export default function ReportBuilder() {
   const { activeProgramme } = useProgramme()
   const [findings, setFindings] = useState([])
   const [risks, setRisks] = useState([])
+  const [rcmRows, setRcmRows] = useState([]) // Sprint 8: SoA + Implementation joined for control testing summary
   const [loadingData, setLoadingData] = useState(false)
   const [form, setForm] = useState({ org: '', sector: '', period: '', lead_auditor: '', standards: 'ISO 27001:2022', opinion: opinions[0], section: 'full', notes: '' })
   const [output, setOutput] = useState('')
@@ -44,8 +47,18 @@ export default function ReportBuilder() {
     if (!activeProgramme) return
     setLoadingData(true)
     try {
-      const [f, r] = await Promise.all([getFindings(activeProgramme.id), getRisks(activeProgramme.id)])
+      const [f, r, soaRows, implRows] = await Promise.all([
+        getFindings(activeProgramme.id), getRisks(activeProgramme.id),
+        getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id),
+      ])
       setFindings(f); setRisks(r)
+      // Same source-of-truth discipline as RCM page: applicability from SoA, testing from Implementation
+      const soaMap = Object.fromEntries(soaRows.map(s => [s.control_id, s.applicable]))
+      const implMap = Object.fromEntries(implRows.map(i => [i.control_id, i]))
+      const rcm = annexAControls
+        .filter(c => (soaMap[c.ref] ?? 'Yes') === 'Yes')
+        .map(c => ({ ref: c.ref, title: c.title, ...(implMap[c.ref] || {}) }))
+      setRcmRows(rcm)
     } catch (e) { console.error(e) }
     setLoadingData(false)
   }, [activeProgramme])
@@ -73,6 +86,22 @@ export default function ReportBuilder() {
     return summary
   }
 
+  const buildControlSummary = () => {
+    if (rcmRows.length === 0) return 'No applicable controls with testing data — check SoA and RCM.'
+    const tested = rcmRows.filter(c => c.test_result && c.test_result !== 'Not Tested')
+    const pass = rcmRows.filter(c => c.test_result === 'Pass')
+    const exception = rcmRows.filter(c => c.test_result === 'Exception')
+    const fail = rcmRows.filter(c => c.test_result === 'Fail')
+    let summary = `Applicable controls: ${rcmRows.length}. Tested: ${tested.length} (${pass.length} operating effectively, ${exception.length} exceptions, ${fail.length} failures). Untested: ${rcmRows.length - tested.length}.\n\n`
+    if (exception.length > 0 || fail.length > 0) {
+      summary += 'Controls requiring attention:\n'
+      ;[...fail, ...exception].forEach(c => {
+        summary += `  - ${c.ref} (${c.title}): ${c.test_result}${c.test_conclusion ? ' — ' + c.test_conclusion : ''}${c.sample_size ? ` [sample size ${c.sample_size}]` : ''}\n`
+      })
+    }
+    return summary
+  }
+
   const buildRiskSummary = () => {
     if (risks.length === 0) return 'No risks logged in the risk register.'
     const above = risks.filter(r => (r.residual_score || r.residual_likelihood * r.residual_impact) >= 12)
@@ -87,6 +116,7 @@ export default function ReportBuilder() {
 
     const findingsSummary = buildFindingsSummary()
     const riskSummary = buildRiskSummary()
+    const controlSummary = buildControlSummary()
 
     const userMessage = `Generate the "${selectedSection?.label}" section of an ISO 19011:2022 formal audit report.
 
@@ -104,6 +134,9 @@ ${findingsSummary}
 
 LIVE RISK DATA FROM SUPABASE:
 ${riskSummary}
+
+LIVE CONTROL TESTING DATA FROM SUPABASE (Risk Control Matrix):
+${controlSummary}
 
 ADDITIONAL NOTES:
 ${form.notes || 'None'}
@@ -137,6 +170,7 @@ Generate a complete, professional ${selectedSection?.label} section. Use the act
     high: findings.filter(f => f.rating === 'High').length,
     open: findings.filter(f => f.status !== 'Closed').length,
     risksAbove: risks.filter(r => (r.residual_score || r.residual_likelihood * r.residual_impact) >= 12).length,
+    controlExceptions: rcmRows.filter(c => c.test_result === 'Exception' || c.test_result === 'Fail').length,
   }
 
   return (
@@ -156,13 +190,14 @@ Generate a complete, professional ${selectedSection?.label} section. Use the act
             <h2 className="section-title mb-0">Live Data — {activeProgramme.programme_id}</h2>
             {loadingData && <Loader2 size={14} className="animate-spin text-steel-400" />}
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-3">
             {[
               { label: 'Total Findings', value: stats.total, color: 'text-white' },
               { label: 'Critical', value: stats.critical, color: 'text-red-400' },
               { label: 'High', value: stats.high, color: 'text-orange-400' },
               { label: 'Open', value: stats.open, color: 'text-amber-audit' },
               { label: 'Risks Above Appetite', value: stats.risksAbove, color: stats.risksAbove > 0 ? 'text-red-400' : 'text-emerald-400' },
+              { label: 'Control Exceptions/Failures', value: stats.controlExceptions, color: stats.controlExceptions > 0 ? 'text-red-400' : 'text-emerald-400' },
             ].map(s => (
               <div key={s.label} className="card-sm text-center">
                 <div className={`font-display text-xl font-bold mb-1 ${s.color}`}>{s.value}</div>

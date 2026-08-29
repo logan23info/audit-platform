@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
-import { FileDown, Loader2 } from 'lucide-react'
+import { useState, useEffect, useCallback, Fragment } from 'react'
+import { FileDown, Loader2, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, getISMSImplementation, getRiskControlLinks, getRisks, upsertISMSControl } from '../../lib/supabase'
+import { getSoA, getISMSImplementation, getRiskControlLinks, getRisks, upsertISMSControl, getRCMSamples, addRCMSample, deleteRCMSample } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import { debounce } from '../../lib/debounce'
 
@@ -50,6 +50,11 @@ export default function RCM() {
   const [savingRef, setSavingRef] = useState(null)
   const [search, setSearch] = useState('')
   const [filterResult, setFilterResult] = useState('All')
+  // Sprint 8: sample items — audit-defensible detail behind the summary sample_size/test_result
+  const [expandedRef, setExpandedRef] = useState(null)
+  const [samplesByControl, setSamplesByControl] = useState({}) // control_id -> [{id, item_ref, description, result}]
+  const [samplesLoading, setSamplesLoading] = useState(false)
+  const [newSample, setNewSample] = useState({ item_ref: '', description: '', result: 'Pass' })
 
   const load = useCallback(async () => {
     if (!activeProgramme) return
@@ -98,6 +103,35 @@ export default function RCM() {
     setImplData(p => ({ ...p, [ref]: row }))
     if (TEXT_FIELDS.includes(field)) debouncedSave(ref, () => persist(ref, row))
     else persist(ref, row)
+  }
+
+  const toggleExpand = (ref) => {
+    if (expandedRef === ref) { setExpandedRef(null); return }
+    setExpandedRef(ref)
+    if (!samplesByControl[ref] && activeProgramme) {
+      setSamplesLoading(true)
+      getRCMSamples(activeProgramme.id, ref)
+        .then(rows => setSamplesByControl(p => ({ ...p, [ref]: rows })))
+        .catch(e => toast('Failed to load samples: ' + e.message, 'error'))
+        .finally(() => setSamplesLoading(false))
+    }
+    setNewSample({ item_ref: '', description: '', result: 'Pass' })
+  }
+
+  const addSample = (ref) => {
+    if (!activeProgramme || !newSample.item_ref.trim()) return
+    addRCMSample({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...newSample })
+      .then(row => {
+        setSamplesByControl(p => ({ ...p, [ref]: [...(p[ref] || []), row] }))
+        setNewSample({ item_ref: '', description: '', result: 'Pass' })
+      })
+      .catch(e => toast('Failed to add sample: ' + e.message, 'error'))
+  }
+
+  const removeSample = (ref, id) => {
+    deleteRCMSample(id)
+      .then(() => setSamplesByControl(p => ({ ...p, [ref]: (p[ref] || []).filter(s => s.id !== id) })))
+      .catch(() => toast('Failed to delete sample', 'error'))
   }
 
   // RCM reads SoA applicability + Implementation status as source of truth — same discipline as Layer 2
@@ -170,19 +204,22 @@ export default function RCM() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="border-b border-navy-700 bg-navy-800/50">
-                  {['Control', 'Title', 'Linked Risks', 'Sample Size', 'Population', 'Selection Method', 'Test Result', 'Conclusion'].map(h => (
+                  {['Control', 'Title', 'Linked Risks', 'Sample Size', 'Population', 'Selection Method', 'Test Result', 'Conclusion', 'Samples'].map(h => (
                     <th key={h} className="text-left py-3 px-3 text-steel-400 font-medium uppercase tracking-wide whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-steel-400">No applicable controls match — check SoA if none are marked Applicable</td></tr>
+                  <tr><td colSpan={9} className="py-12 text-center text-steel-400">No applicable controls match — check SoA if none are marked Applicable</td></tr>
                 ) : filtered.map((c, i) => {
                   const row = implData[c.ref] || emptyTest()
                   const badge = conclusionBadge(soaMap[c.ref] || 'Yes', row.status, row.test_result)
+                  const isOpen = expandedRef === c.ref
+                  const sampleCount = samplesByControl[c.ref]?.length
                   return (
-                    <tr key={c.ref} className={`border-b border-navy-800 ${i % 2 === 0 ? '' : 'bg-navy-800/10'}`}>
+                    <Fragment key={c.ref}>
+                    <tr className={`border-b ${isOpen ? 'border-navy-700' : 'border-navy-800'} ${i % 2 === 0 ? '' : 'bg-navy-800/10'}`}>
                       <td className="py-2 px-3 whitespace-nowrap font-mono text-amber-audit font-semibold">{c.ref}</td>
                       <td className="py-2 px-3 text-white max-w-xs">
                         {c.title}
@@ -199,7 +236,43 @@ export default function RCM() {
                         <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block ${badge.color}`}>{badge.label}</div>
                       </td>
                       <td className="py-2 px-3 min-w-40"><input className="input-field text-xs py-0.5 w-full" placeholder="Test conclusion / rationale" value={row.test_conclusion} onChange={e => update(c.ref, 'test_conclusion', e.target.value)} /></td>
+                      <td className="py-2 px-3 whitespace-nowrap">
+                        <button onClick={() => toggleExpand(c.ref)} className="btn-secondary text-xs py-1 px-2 inline-flex items-center gap-1">
+                          {sampleCount ?? '·'} {isOpen ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                        </button>
+                      </td>
                     </tr>
+                    {isOpen && (
+                      <tr className="border-b border-navy-700 bg-navy-900/40">
+                        <td colSpan={9} className="px-4 py-3">
+                          <div className="text-xs font-semibold text-steel-300 mb-2">Sample Items Tested — {c.ref}</div>
+                          {samplesLoading && !samplesByControl[c.ref] ? (
+                            <Loader2 size={14} className="animate-spin text-steel-400" />
+                          ) : (
+                            <div className="space-y-1.5 mb-3">
+                              {(samplesByControl[c.ref] || []).length === 0 && <div className="text-xs text-steel-500">No sample items recorded yet.</div>}
+                              {(samplesByControl[c.ref] || []).map(s => (
+                                <div key={s.id} className="flex flex-col sm:flex-row sm:items-center gap-2 bg-navy-800 rounded-lg px-3 py-2">
+                                  <span className="font-mono text-xs text-white flex-shrink-0">{s.item_ref}</span>
+                                  <span className="text-xs text-steel-300 flex-1 min-w-0">{s.description}</span>
+                                  <span className={`badge text-xs flex-shrink-0 ${s.result === 'Pass' ? 'bg-emerald-900/30 text-emerald-300' : s.result === 'Exception' ? 'bg-amber-900/30 text-amber-300' : 'bg-red-900/30 text-red-300'}`}>{s.result}</span>
+                                  <button onClick={() => removeSample(c.ref, s.id)} className="text-steel-500 hover:text-red-400 flex-shrink-0"><Trash2 size={12} /></button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <input className="input-field text-xs py-1 flex-1 min-w-0" placeholder="Item ref (e.g. CHG-0042)" value={newSample.item_ref} onChange={e => setNewSample(p => ({ ...p, item_ref: e.target.value }))} />
+                            <input className="input-field text-xs py-1 flex-1 min-w-0" placeholder="Description / what was checked" value={newSample.description} onChange={e => setNewSample(p => ({ ...p, description: e.target.value }))} />
+                            <select className="input-field text-xs py-1 w-full sm:w-28" value={newSample.result} onChange={e => setNewSample(p => ({ ...p, result: e.target.value }))}>
+                              <option>Pass</option><option>Exception</option><option>Fail</option>
+                            </select>
+                            <button onClick={() => addSample(c.ref)} className="btn-secondary text-xs py-1 px-3 whitespace-nowrap"><Plus size={12} /> Add</button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   )
                 })}
               </tbody>

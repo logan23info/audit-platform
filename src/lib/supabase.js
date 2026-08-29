@@ -318,6 +318,26 @@ export async function logControlHistory(row) {
   if (error) throw error
 }
 
+// ─── ISMS — RCM Sample Items (Sprint 8, audit-defensible testing detail) ───
+export async function getRCMSamples(programmeId, controlId) {
+  let q = supabase.from('isms_rcm_samples').select('*').eq('programme_id', programmeId)
+  if (controlId) q = q.eq('control_id', controlId)
+  const { data, error } = await q.order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function addRCMSample(row) {
+  const { data, error } = await supabase.from('isms_rcm_samples').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteRCMSample(id) {
+  const { error } = await supabase.from('isms_rcm_samples').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── ISMS — Multi-site Scope Register ───────────────────────────
 export async function getSites(programmeId) {
   const { data, error } = await supabase

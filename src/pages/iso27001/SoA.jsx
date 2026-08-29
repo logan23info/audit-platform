@@ -6,12 +6,13 @@ import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, upsertSoAControl, getISMSImplementation } from '../../lib/supabase'
+import { getSoA, upsertSoAControl, getISMSImplementation, logControlHistory } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import { debounce } from '../../lib/debounce'
 
 const debouncedSave = debounce((fn) => fn(), 600)
 const TEXT_FIELDS = ['justification', 'exclusion_reason', 'notes']
+const HISTORY_FIELDS = ['applicable', 'status']
 
 const SOA_COLUMNS = [
   { label: 'Control Ref', key: 'ref' }, { label: 'Control Title', key: 'title' },
@@ -63,10 +64,15 @@ export default function SoA() {
 
   // Truth table: applicable=No -> status forced Not Applicable; applicable=Yes & status was Not Applicable -> reset to Planned
   const update = (ref, field, value) => {
-    // Safeguard: flipping to Not Applicable after Layer 2 evidence was attached would silently exclude verified evidence — confirm first
+    const oldValue = soaData[ref]?.[field]
+    let reason = null
+    // Safeguard + retirement reason capture: flipping to Not Applicable after Layer 2 evidence was attached
     if (field === 'applicable' && value === 'No' && evidenceMap[ref]) {
       const ok = window.confirm(`${ref} already has implementation evidence attached in ISMS Implementation. Marking it Not Applicable will exclude it from Layer 2 tracking. Continue?`)
       if (!ok) return
+    }
+    if (field === 'applicable' && value === 'No' && oldValue === 'Yes') {
+      reason = window.prompt(`Retiring ${ref} (Applicable -> Not Applicable). Reason for the version history? (optional)`) || null
     }
     const row = { ...soaData[ref], [field]: value }
     if (field === 'applicable' && value === 'No') row.status = 'Not Applicable'
@@ -76,6 +82,10 @@ export default function SoA() {
       debouncedSave(ref, () => persist(ref, row))
     } else {
       persist(ref, row)
+    }
+    // Control retirement/versioning trail — only material fields, only on real change
+    if (HISTORY_FIELDS.includes(field) && oldValue !== value && activeProgramme) {
+      logControlHistory({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'soa', field, old_value: oldValue ?? null, new_value: value, reason }).catch(() => {})
     }
   }
 

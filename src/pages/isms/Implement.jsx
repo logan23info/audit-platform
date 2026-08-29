@@ -6,7 +6,7 @@ import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, getISMSImplementation, upsertISMSControl } from '../../lib/supabase'
+import { getSoA, getISMSImplementation, upsertISMSControl, logControlHistory } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import { debounce } from '../../lib/debounce'
 
@@ -73,12 +73,16 @@ export default function ISMSImplement() {
   }
 
   const update = (ref, field, value) => {
+    const oldValue = implData[ref]?.[field]
     const row = { ...implData[ref], [field]: value }
     setImplData(p => ({ ...p, [ref]: row }))
     if (TEXT_FIELDS.includes(field)) {
       debouncedSave(ref, () => persist(ref, row))
     } else {
       persist(ref, row)
+    }
+    if (field === 'status' && oldValue !== value && activeProgramme) {
+      logControlHistory({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'implementation', field, old_value: oldValue ?? null, new_value: value, reason: null }).catch(() => {})
     }
   }
 

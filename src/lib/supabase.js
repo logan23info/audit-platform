@@ -296,3 +296,45 @@ export async function deleteRiskControlLink(id) {
   const { error } = await supabase.from('isms_risk_control_map').delete().eq('id', id)
   if (error) throw error
 }
+
+// ─── ISMS — Control History (retirement / versioning trail) ───
+export async function getControlHistory(programmeId, controlId) {
+  let q = supabase.from('isms_control_history').select('*').eq('programme_id', programmeId)
+  if (controlId) q = q.eq('control_id', controlId)
+  const { data, error } = await q.order('changed_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function logControlHistory(row) {
+  const { error } = await supabase.from('isms_control_history').insert(row)
+  if (error) throw error
+}
+
+// ─── ISMS — Multi-site Scope Register ───────────────────────────
+export async function getSites(programmeId) {
+  const { data, error } = await supabase
+    .from('isms_sites')
+    .select('*')
+    .eq('programme_id', programmeId)
+    .order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function createSite(site) {
+  const { data, error } = await supabase.from('isms_sites').insert(site).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function updateSite(id, updates) {
+  const { data, error } = await supabase.from('isms_sites').update(updates).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteSite(id) {
+  const { error } = await supabase.from('isms_sites').delete().eq('id', id)
+  if (error) throw error
+}

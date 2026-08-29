@@ -47,6 +47,8 @@ export const navSections = [
     items: [
       { id: 'isms-landing', label: 'ISMS Overview', path: '/isms', icon: 'ShieldCheck' },
       { id: 'isms-implement', label: 'Layer 2 — Implement Controls', path: '/isms/implement', icon: 'ClipboardList' },
+      { id: 'isms-scope', label: 'Multi-site Scope Register', path: '/isms/scope', icon: 'Map' },
+      { id: 'isms-history', label: 'Control History', path: '/isms/history', icon: 'History' },
     ]
   },
   {
@@ -76,6 +78,7 @@ export const navSections = [
       { id: 'findings', label: 'Finding Register ⭐ Live', path: '/fieldwork/findings', icon: 'AlertTriangle' },
       { id: 'workpapers', label: 'Workpaper Index', path: '/fieldwork/workpapers', icon: 'FolderOpen' },
       { id: 'library', label: 'Workpaper Library ☁️', path: '/fieldwork/library', icon: 'CloudUpload' },
+      { id: 'isms-audit', label: 'ISMS Certification Audit', path: '/fieldwork/isms-audit', icon: 'ShieldCheck' },
     ]
   },
   {

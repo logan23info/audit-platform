@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckSquare, ClipboardList, ShieldCheck, Loader2 } from 'lucide-react'
+import { CheckSquare, ClipboardList, ShieldCheck, Loader2, Map, History } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { getSoA, getISMSImplementation } from '../../lib/supabase'
@@ -49,7 +49,7 @@ export default function ISMSLanding() {
         </div>
       )}
 
-      <div className="grid sm:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4 mb-4">
         <Link to="/iso27001/soa" className="card hover:border-steel-500 transition-colors">
           <CheckSquare size={20} className="text-amber-audit mb-2" />
           <div className="font-semibold text-white mb-1">Layer 1 — SoA</div>
@@ -64,6 +64,19 @@ export default function ISMSLanding() {
           <ShieldCheck size={20} className="text-emerald-400 mb-2" />
           <div className="font-semibold text-white mb-1">Risk ↔ Control Map</div>
           <div className="text-xs text-steel-400">Cl. 6.1.3 — link risk register entries to the controls that treat them.</div>
+        </Link>
+      </div>
+
+      <div className="grid sm:grid-cols-2 gap-4">
+        <Link to="/isms/scope" className="card hover:border-steel-500 transition-colors">
+          <Map size={20} className="text-purple-400 mb-2" />
+          <div className="font-semibold text-white mb-1">Multi-site Scope Register</div>
+          <div className="text-xs text-steel-400">Cl. 4.3 — sites, cloud regions, and remote arrangements defining the ISMS boundary.</div>
+        </Link>
+        <Link to="/isms/history" className="card hover:border-steel-500 transition-colors">
+          <History size={20} className="text-steel-400 mb-2" />
+          <div className="font-semibold text-white mb-1">Control History</div>
+          <div className="text-xs text-steel-400">Retirement and versioning trail for every SoA/Implementation status change.</div>
         </Link>
       </div>
     </div>

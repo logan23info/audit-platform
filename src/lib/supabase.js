@@ -253,13 +253,21 @@ export async function upsertSoAControl(row) {
 }
 
 // ─── ISMS — Implementation (Layer 2) ────────────────────────────
-export async function getISMSImplementation(programmeId) {
-  const { data, error } = await supabase
-    .from('isms_implementation')
-    .select('*')
-    .eq('programme_id', programmeId)
+// includeArchived=false (default) hides rows archived by control retirement — Sprint 5 cascade
+export async function getISMSImplementation(programmeId, includeArchived = false) {
+  let q = supabase.from('isms_implementation').select('*').eq('programme_id', programmeId)
+  if (!includeArchived) q = q.eq('archived', false)
+  const { data, error } = await q
   if (error) throw error
   return data
+}
+
+// Retirement cascade: archive (never delete) Layer 2 + risk-control-map rows for a control
+export async function archiveControl(programmeId, controlId, archived = true) {
+  const { error: e1 } = await supabase.from('isms_implementation').update({ archived }).eq('programme_id', programmeId).eq('control_id', controlId)
+  if (e1) throw e1
+  const { error: e2 } = await supabase.from('isms_risk_control_map').update({ archived }).eq('programme_id', programmeId).eq('control_id', controlId)
+  if (e2) throw e2
 }
 
 export async function upsertISMSControl(row) {
@@ -273,11 +281,10 @@ export async function upsertISMSControl(row) {
 }
 
 // ─── ISMS — Risk ↔ Control Map (Cl. 6.1.3) ─────────────────────
-export async function getRiskControlLinks(programmeId) {
-  const { data, error } = await supabase
-    .from('isms_risk_control_map')
-    .select('*')
-    .eq('programme_id', programmeId)
+export async function getRiskControlLinks(programmeId, includeArchived = false) {
+  let q = supabase.from('isms_risk_control_map').select('*').eq('programme_id', programmeId)
+  if (!includeArchived) q = q.eq('archived', false)
+  const { data, error } = await q
   if (error) throw error
   return data
 }
@@ -336,5 +343,23 @@ export async function updateSite(id, updates) {
 
 export async function deleteSite(id) {
   const { error } = await supabase.from('isms_sites').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ─── ISMS — Control ↔ Site cross-reference (Cl. 4.3) ────────────
+export async function getControlSites(programmeId) {
+  const { data, error } = await supabase.from('isms_control_sites').select('*').eq('programme_id', programmeId)
+  if (error) throw error
+  return data
+}
+
+export async function linkControlSite(row) {
+  const { data, error } = await supabase.from('isms_control_sites').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function unlinkControlSite(id) {
+  const { error } = await supabase.from('isms_control_sites').delete().eq('id', id)
   if (error) throw error
 }

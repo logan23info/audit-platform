@@ -6,7 +6,7 @@ import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, upsertSoAControl, getISMSImplementation, logControlHistory } from '../../lib/supabase'
+import { getSoA, upsertSoAControl, getISMSImplementation, logControlHistory, archiveControl, getSites, getControlSites, linkControlSite, unlinkControlSite } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import { debounce } from '../../lib/debounce'
 
@@ -30,6 +30,8 @@ export default function SoA() {
   const { toast } = useToast()
   const [soaData, setSoaData] = useState(() => controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyRow() }), {}))
   const [evidenceMap, setEvidenceMap] = useState({}) // control_id -> has Layer 2 evidence, for the applicability-flip safeguard
+  const [outOfScopeSites, setOutOfScopeSites] = useState([])
+  const [controlSites, setControlSites] = useState({}) // control_id -> [{id, site_id, site_name}]
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
   const [filterTheme, setFilterTheme] = useState('All')
@@ -41,13 +43,18 @@ export default function SoA() {
     if (!activeProgramme) return
     setLoading(true)
     try {
-      const [rows, implRows] = await Promise.all([getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id)])
+      const [rows, implRows, sites, csRows] = await Promise.all([getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id), getSites(activeProgramme.id), getControlSites(activeProgramme.id)])
       const byRef = controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyRow() }), {})
       rows.forEach(r => { byRef[r.control_id] = { applicable: r.applicable, justification: r.justification || '', exclusion_reason: r.exclusion_reason || '', status: r.status, notes: r.notes || '' } })
       setSoaData(byRef)
       const ev = {}
       implRows.forEach(r => { if (r.evidence_url) ev[r.control_id] = true })
       setEvidenceMap(ev)
+      setOutOfScopeSites(sites.filter(s => !s.in_scope))
+      const siteById = Object.fromEntries(sites.map(s => [s.id, s.site_name]))
+      const cs = {}
+      csRows.forEach(r => { (cs[r.control_id] ||= []).push({ id: r.id, site_id: r.site_id, site_name: siteById[r.site_id] || 'Unknown site' }) })
+      setControlSites(cs)
     } catch (e) { toast('Failed to load SoA: ' + e.message, 'error') }
     setLoading(false)
   }, [activeProgramme])
@@ -87,6 +94,23 @@ export default function SoA() {
     if (HISTORY_FIELDS.includes(field) && oldValue !== value && activeProgramme) {
       logControlHistory({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'soa', field, old_value: oldValue ?? null, new_value: value, reason }).catch(() => {})
     }
+    // Retirement cascade: archive (not delete) Layer 2 + risk-control-map rows; unarchive on reactivation
+    if (field === 'applicable' && oldValue !== value && activeProgramme) {
+      archiveControl(activeProgramme.id, ref, value === 'No').catch(() => {})
+    }
+  }
+
+  const linkSite = (ref, siteId) => {
+    if (!siteId || !activeProgramme) return
+    linkControlSite({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, site_id: siteId })
+      .then(row => setControlSites(p => ({ ...p, [ref]: [...(p[ref] || []), { id: row.id, site_id: siteId, site_name: outOfScopeSites.find(s => s.id === siteId)?.site_name }] })))
+      .catch(e => toast('Link failed: ' + e.message, 'error'))
+  }
+
+  const unlinkSite = (ref, linkId) => {
+    unlinkControlSite(linkId)
+      .then(() => setControlSites(p => ({ ...p, [ref]: (p[ref] || []).filter(l => l.id !== linkId) })))
+      .catch(() => toast('Unlink failed', 'error'))
   }
 
   const filtered = controls.filter(c =>
@@ -205,6 +229,23 @@ export default function SoA() {
                         placeholder={isApplicable ? 'Justification for inclusion...' : 'Reason for exclusion...'}
                         value={isApplicable ? row.justification : row.exclusion_reason}
                         onChange={e => update(c.ref, isApplicable ? 'justification' : 'exclusion_reason', e.target.value)} />
+                      {!isApplicable && outOfScopeSites.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap items-center gap-1">
+                          {(controlSites[c.ref] || []).map(l => (
+                            <span key={l.id} className="badge badge-steel text-xs inline-flex items-center gap-1">
+                              {l.site_name}
+                              <button onClick={() => unlinkSite(c.ref, l.id)} className="hover:text-red-400"><X size={9} /></button>
+                            </span>
+                          ))}
+                          <select className="input-field text-xs py-0 px-1 h-5 w-32" value=""
+                            onChange={e => linkSite(c.ref, e.target.value)}>
+                            <option value="">+ link out-of-scope site</option>
+                            {outOfScopeSites.filter(s => !(controlSites[c.ref] || []).some(l => l.site_id === s.id)).map(s => (
+                              <option key={s.id} value={s.id}>{s.site_name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </td>
                     <td className="py-2 px-3 whitespace-nowrap">
                       <select className="input-field py-0.5 text-xs w-28" value={row.status}

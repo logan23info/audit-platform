@@ -3,7 +3,7 @@ import { Plus, Trash2, Loader2, FileDown, MapPin } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useAuth } from '../../context/AuthContext'
 import { useProgramme } from '../../context/ProgrammeContext'
-import { getSites, createSite, updateSite, deleteSite } from '../../lib/supabase'
+import { getSites, createSite, updateSite, deleteSite, getControlSites } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import ConfirmModal from '../../components/ConfirmModal'
 import { exportToCSV } from '../../utils/exportCSV'
@@ -21,6 +21,7 @@ export default function ScopeRegister() {
   const { activeProgramme } = useProgramme()
   const { toast } = useToast()
   const [sites, setSites] = useState([])
+  const [controlCounts, setControlCounts] = useState({}) // site_id -> count of linked controls (Sprint 5 cross-reference)
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
@@ -29,8 +30,13 @@ export default function ScopeRegister() {
   const load = useCallback(async () => {
     if (!activeProgramme) return
     setLoading(true)
-    try { setSites(await getSites(activeProgramme.id)) }
-    catch (e) { toast('Failed to load: ' + e.message, 'error') }
+    try {
+      const [siteRows, csRows] = await Promise.all([getSites(activeProgramme.id), getControlSites(activeProgramme.id)])
+      setSites(siteRows)
+      const counts = {}
+      csRows.forEach(r => { counts[r.site_id] = (counts[r.site_id] || 0) + 1 })
+      setControlCounts(counts)
+    } catch (e) { toast('Failed to load: ' + e.message, 'error') }
     setLoading(false)
   }, [activeProgramme])
 
@@ -96,9 +102,9 @@ export default function ScopeRegister() {
         <div className="card p-0 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead><tr className="border-b border-navy-700 bg-navy-800/50">{['Site', 'Type', 'Address', 'In Scope', 'Notes', ''].map(h => <th key={h} className="text-left py-2.5 px-3 text-steel-400 font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
+              <thead><tr className="border-b border-navy-700 bg-navy-800/50">{['Site', 'Type', 'Address', 'In Scope', 'Linked Controls', 'Notes', ''].map(h => <th key={h} className="text-left py-2.5 px-3 text-steel-400 font-medium whitespace-nowrap">{h}</th>)}</tr></thead>
               <tbody>
-                {sites.length === 0 ? <tr><td colSpan={6} className="py-12 text-center text-steel-400">No sites yet — click Add Site</td></tr>
+                {sites.length === 0 ? <tr><td colSpan={7} className="py-12 text-center text-steel-400">No sites yet — click Add Site</td></tr>
                   : sites.map(s => (
                     <tr key={s.id} className="border-b border-navy-800">
                       <td className="py-2 px-3 text-white font-medium">{s.site_name}</td>
@@ -109,6 +115,7 @@ export default function ScopeRegister() {
                           {s.in_scope ? '✓ In Scope' : '✗ Out of Scope'}
                         </button>
                       </td>
+                      <td className="py-2 px-3 text-steel-300">{controlCounts[s.id] ? <span className="badge badge-amber text-xs">{controlCounts[s.id]} excluded control{controlCounts[s.id] > 1 ? 's' : ''}</span> : '—'}</td>
                       <td className="py-2 px-3 text-steel-400 max-w-xs truncate">{s.notes}</td>
                       <td className="py-2 px-3"><button onClick={() => remove(s.id, s.site_name)} className="text-steel-500 hover:text-red-400"><Trash2 size={13} /></button></td>
                     </tr>

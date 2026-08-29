@@ -86,13 +86,24 @@ const annexSections = [
       'Expand sample if exception rate approaches or exceeds threshold',
     ]
   },
+  {
+    ref: 'A.16', title: 'Remote audit methods ⭐ New in ISO 19011:2026',
+    color: 'border-l-cyan-400',
+    desc: 'New dedicated annex elevating remote auditing from an appendix note (2018 A.3) to a formally referenced method — on-site, remote, and hybrid are now equally valid options to be decided at every stage of the audit lifecycle, referencing ISO/IEC TS 17012:2024 as complementary guidance.',
+    items: [
+      'Remote and on-site methods considered and decided at programme design, not late-stage delivery',
+      'ISO/IEC TS 17012:2024 referenced as complementary technical guidance for remote audits',
+      'Auditor ICT competence formally required — see Clause 7',
+      'Climate change assessed as a relevant context factor during the audit, per Cl. 6 guidance',
+    ]
+  },
 ]
 
 export default function AnnexA() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        standard="ISO 19011:2018"
+        standard="ISO 19011:2026"
         clause="Annex A"
         title="Annex A — Supplemental Guidance"
         description="ISO 19011 Annex A provides additional guidance beyond the main clauses — covering auditor behaviour, audit methods, remote auditing, auditee context, risk-based approaches, and sampling. Informative, not mandatory — but highly recommended practice."
@@ -148,7 +159,7 @@ export default function AnnexA() {
 
       <AIPanel
         title="Generate Annex A Guidance Documents"
-        systemPrompt="You are an ISO 19011:2018 Annex A expert. Generate practical guidance documents based on ISO 19011 Annex A supplemental guidance — covering audit methods selection, remote audit procedures, risk-based audit planning, sampling justifications, and auditee context analysis. All outputs must be structured, professional, and immediately usable in real audit engagements."
+        systemPrompt="You are an ISO 19011:2026 Annex A expert. Generate practical guidance documents based on ISO 19011 Annex A supplemental guidance — covering audit methods selection, remote audit procedures, risk-based audit planning, sampling justifications, and auditee context analysis. All outputs must be structured, professional, and immediately usable in real audit engagements."
         placeholder="e.g. Generate a Remote Audit Procedure document for conducting ISO 27001 audits via video conferencing"
         contextFields={[
           { id: 'section', label: 'Annex A Section', type: 'select', options: ['A.1 — Auditor Behaviour Guidance', 'A.2 — Audit Methods Matrix', 'A.3 — Remote Audit Procedure', 'A.4 — Auditee Context Guide', 'A.5 — Risk-Based Audit Plan', 'A.6 — Sampling Justification Template'] },

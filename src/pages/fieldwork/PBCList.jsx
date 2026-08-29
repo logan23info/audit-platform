@@ -157,7 +157,7 @@ export default function PBCList() {
       <div className="mt-6">
         <AIPanel
           title="AI — Generate PBC Evidence List"
-          systemPrompt="You are an ISO 19011:2018 audit fieldwork specialist. Generate comprehensive PBC (Provided By Client) evidence lists for specific controls, clauses, or audit phases. Include evidence type, format, period covered, and responsible party. Organised by TOD, TOI, and TOE phases."
+          systemPrompt="You are an ISO 19011:2026 audit fieldwork specialist. Generate comprehensive PBC (Provided By Client) evidence lists for specific controls, clauses, or audit phases. Include evidence type, format, period covered, and responsible party. Organised by TOD, TOI, and TOE phases."
           placeholder="e.g. Generate a PBC evidence list for ISO 27001 Clause 8 — Operations covering A.8.7, A.8.8, A.8.13 for a 12-month audit period"
           contextFields={[
             { id: 'scope', label: 'Audit Scope / Controls', type: 'text', placeholder: 'e.g. ISO 27002 A.8.1–A.8.8, Technological controls' },

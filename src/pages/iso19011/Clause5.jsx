@@ -5,7 +5,7 @@ import { CheckCircle2 } from 'lucide-react'
 const elements = [
   { clause: '5.2', title: 'Audit Programme Objectives', color: 'border-l-blue-500',
     desc: 'Establish measurable objectives for the entire audit programme — aligned to management system goals, risk levels, and regulatory requirements.',
-    items: ['Alignment to ISMS strategic objectives', 'Regulatory and contractual requirements considered', 'Risk appetite and auditee risk levels reflected', 'Available resources and auditor competence assessed', 'Results of previous audits and lessons learned incorporated', 'Changes in the organisation and technology environment'],
+    items: ['Alignment to ISMS strategic objectives', 'Regulatory and contractual requirements considered', 'Risk appetite and auditee risk levels reflected', 'Available resources and auditor competence assessed', 'Results of previous audits and lessons learned incorporated', 'Changes in the organisation and technology environment', 'Audit method (on-site/remote/hybrid) decided at programme design — ISO 19011:2026'],
     artifact: 'Audit Programme Objectives Document' },
   { clause: '5.3', title: 'Audit Programme Risks & Opportunities', color: 'border-l-red-500',
     desc: 'Identify risks and opportunities that could affect the audit programme — resource constraints, auditor availability, access issues, and scope changes.',
@@ -42,7 +42,7 @@ const scheduleTemplate = [
 export default function Clause5() {
   return (
     <div className="max-w-5xl mx-auto">
-      <PageHeader standard="ISO 19011:2018" clause="Clause 5" title="Clause 5 — Audit Programme Management"
+      <PageHeader standard="ISO 19011:2026" clause="Clause 5" title="Clause 5 — Audit Programme Management"
         description="ISO 19011 Clause 5 covers managing the overall audit programme — setting objectives, identifying programme risks, allocating resources, implementing the annual schedule, monitoring progress, and maintaining records."
         badges={['Programme Management', 'Pre-Audit', 'Annual Planning']} />
 
@@ -99,12 +99,13 @@ export default function Clause5() {
       </div>
 
       <AIPanel title="Generate Audit Programme Documents"
-        systemPrompt="You are an ISO 19011:2018 Clause 5 audit programme management specialist. Generate professional audit programme documents including objectives, annual schedules, resource plans, risk registers, and programme review reports. Align to ISO 19011:2018 Clause 5 requirements."
+        systemPrompt="You are an ISO 19011:2026 Clause 5 audit programme management specialist. Generate professional audit programme documents including objectives, annual schedules, resource plans, risk registers, and programme review reports. Align to ISO 19011:2026 Clause 5 requirements."
         placeholder="e.g. Generate a 12-month ISO 27001 internal audit programme for a 500-person financial services firm"
         contextFields={[
           { id: 'org', label: 'Organisation & Sector', type: 'text', placeholder: 'e.g. UK bank, 500 staff, ISO 27001 certified' },
           { id: 'artifact', label: 'Artifact Required', type: 'select', options: ['Annual Audit Programme', 'Audit Programme Objectives', 'Audit Programme Risk Register', 'Resource Plan', 'Individual Audit Mandate', 'Programme Review Report', 'Audit Schedule Template'] },
           { id: 'standards', label: 'Standards in Scope', type: 'text', placeholder: 'e.g. ISO 27001, ISO 27002, ISO 27005' },
+          { id: 'auditMethod', label: 'Audit Method ⭐ New in 19011:2026', type: 'select', options: ['On-site', 'Remote', 'Hybrid — decide per audit', 'Not yet decided'] },
         ]} />
     </div>
   )

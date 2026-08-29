@@ -60,7 +60,7 @@ const livePages = [
 ]
 
 const standards = [
-  { std: 'ISO 19011:2018', color: 'text-amber-audit', role: 'Audit backbone — HOW to audit', pages: 'Cl.4, 5, 6.2, 6.3, TOD, TOI, TOE, Findings, Meetings, Reporting, Cl.7, Annex A' },
+  { std: 'ISO 19011:2026', color: 'text-amber-audit', role: 'Audit backbone — HOW to audit', pages: 'Cl.4, 5, 6.2, 6.3, TOD, TOI, TOE, Findings, Meetings, Reporting, Cl.7, Annex A' },
   { std: 'ISO 27001:2022', color: 'text-blue-400', role: 'ISMS requirements — WHAT the org must do', pages: 'Clause 4 through 10' },
   { std: 'ISO 27002:2022', color: 'text-purple-400', role: 'Controls guidance — 93 Annex A controls with audit testing points', pages: 'Organizational (37), People (8), Physical (14), Technological (34) + Net-New 11' },
   { std: 'ISO 27005:2022', color: 'text-red-400', role: 'Risk management — Asset × Threat × Vulnerability + STRIDE', pages: 'Asset Register ⭐ Live, Risk Register ⭐ Live, RTP (control mapping), Scenarios (6 pre-built + AI)' },

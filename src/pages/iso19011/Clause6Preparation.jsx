@@ -13,7 +13,7 @@ export default function Clause6Preparation() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        standard="ISO 19011:2018"
+        standard="ISO 19011:2026"
         clause="Clause 6.3"
         title="Audit Preparation"
         description="Structured preparation activities before fieldwork — document review, formal audit plan, work assignment, and workpaper setup."
@@ -46,7 +46,7 @@ export default function Clause6Preparation() {
       </div>
       <AIPanel
         title="Generate Preparation Artifacts"
-        systemPrompt="You are an ISO 19011:2018 audit preparation expert. Generate formal audit plans, document adequacy reviews, work assignment matrices, and workpaper preparation guides. All outputs must be structured, professional, and immediately usable by audit teams."
+        systemPrompt="You are an ISO 19011:2026 audit preparation expert. Generate formal audit plans, document adequacy reviews, work assignment matrices, and workpaper preparation guides. All outputs must be structured, professional, and immediately usable by audit teams."
         placeholder="e.g. Generate a Formal Audit Plan for an ISO 27001:2022 ISMS surveillance audit at a healthcare SaaS company"
         contextFields={[
           { id: 'org', label: 'Organisation / Sector', placeholder: 'e.g. Healthcare SaaS, ISO 27001:2022', type: 'text' },

@@ -12,7 +12,7 @@ const elements = [
   {
     clause: '6.2.3', title: 'Feasibility Assessment',
     desc: 'Pre-audit check confirming the audit is achievable given scope, resources, and access.',
-    items: ['Scope is clearly defined and agreed', 'Sufficient audit time allocated', 'Auditee cooperation confirmed', 'Resources and tools available'],
+    items: ['Scope is clearly defined and agreed', 'Sufficient audit time allocated', 'Auditee cooperation confirmed', 'Resources and tools available', 'Auditee assessed climate change as a relevant context factor — ISO 19011:2026'],
     artifact: 'Feasibility Assessment Template',
   },
   {
@@ -27,7 +27,7 @@ export default function Clause6Initiation() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        standard="ISO 19011:2018"
+        standard="ISO 19011:2026"
         clause="Clause 6.2"
         title="Audit Initiation"
         description="Formal activities required before fieldwork begins — appointing the lead auditor, confirming feasibility, and establishing initial contact with the auditee."
@@ -67,7 +67,7 @@ export default function Clause6Initiation() {
       </div>
       <AIPanel
         title="Generate Initiation Artifacts"
-        systemPrompt="You are an ISO 19011:2018 audit initiation expert. Generate professional audit initiation documents: lead auditor appointment letters, feasibility assessments, initial contact templates, and terms of reference. Be concise, structured, and ready-to-use. Use professional audit language with clear sections."
+        systemPrompt="You are an ISO 19011:2026 audit initiation expert. Generate professional audit initiation documents: lead auditor appointment letters, feasibility assessments, initial contact templates, and terms of reference. Be concise, structured, and ready-to-use. Use professional audit language with clear sections."
         placeholder="e.g. Generate a Lead Auditor Appointment Letter for an ISO 27001 internal audit at a fintech company"
         contextFields={[
           { id: 'org', label: 'Organisation & Sector', placeholder: 'e.g. Fintech Ltd, 400 employees, ISO 27001 scope', type: 'text' },

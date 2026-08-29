@@ -83,7 +83,7 @@ function ScenarioCard({ s }) {
               {s.indicators.map(i => <div key={i} className="flex items-start gap-1.5 mb-1"><span className="text-blue-400 text-xs flex-shrink-0">→</span><span className="text-xs text-steel-300">{i}</span></div>)}
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
             {[{ label: 'Likelihood', value: s.likelihood, color: 'text-orange-400' }, { label: 'Impact', value: s.impact, color: 'text-red-400' }, { label: 'Risk Score', value: s.score, color: scoreColor }].map(m => (
               <div key={m.label} className="bg-navy-800 rounded-lg p-2">
                 <div className={`font-display text-xl font-bold ${m.color}`}>{m.value}</div>

@@ -4,13 +4,15 @@ import { CheckCircle2 } from 'lucide-react'
 
 const competencyAreas = [
   { area: 'Professional Knowledge', color: 'border-l-blue-500',
-    items: ['ISO 19011:2018 — audit principles, process, and methods', 'ISO 27001:2022 — ISMS requirements (for IS auditors)', 'ISO 27002:2022 — controls and implementation guidance', 'ISO 27005:2022 — information security risk management', 'Applicable legal and regulatory requirements', 'Industry-specific standards (PCI-DSS, SOC 2, GDPR)'] },
+    items: ['ISO 19011:2026 — audit principles, process, and methods', 'ISO 27001:2022 — ISMS requirements (for IS auditors)', 'ISO 27002:2022 — controls and implementation guidance', 'ISO 27005:2022 — information security risk management', 'Applicable legal and regulatory requirements', 'Industry-specific standards (PCI-DSS, SOC 2, GDPR)'] },
   { area: 'Audit Skills', color: 'border-l-emerald-500',
     items: ['TOD — design gap analysis and documentation review', 'TOI — walkthrough and interview techniques', 'TOE — statistical sampling and re-performance', 'Finding development using 4Cs methodology', 'Evidence evaluation and sufficiency assessment', 'Working paper documentation to professional standard'] },
   { area: 'Personal Attributes', color: 'border-l-purple-500',
     items: ['Ethical — fair, truthful, sincere, honest, discreet', 'Open-minded — willing to consider alternative ideas', 'Diplomatic — tactful in dealing with auditees', 'Observant — actively aware of physical surroundings', 'Perceptive — aware of and able to understand situations', 'Versatile — adapt readily to different contexts'] },
   { area: 'Communication', color: 'border-l-amber-500',
     items: ['Structured interview techniques — open vs closed questions', 'Active listening — confirm understanding, avoid assumption', 'Clear verbal communication of findings', 'Professional written reporting — concise and objective', 'Presentation of findings to management', 'Handling hostile or uncooperative auditees'] },
+  { area: 'ICT Competence ⭐ New in ISO 19011:2026', color: 'border-l-cyan-500',
+    items: ['Effective use of digital audit tools, video conferencing platforms, and cloud-based document systems', 'Cybersecurity awareness when handling auditee evidence and systems access remotely', 'Judgement on when remote evidence-gathering is appropriate vs. requiring on-site verification', 'Competence in secure file transfer and remote screen-share evidence collection', 'Understanding of ISO/IEC TS 17012:2024 remote audit method guidance'] },
 ]
 
 const certifications = [
@@ -31,7 +33,7 @@ const competencyMatrix = [
 export default function Clause7() {
   return (
     <div className="max-w-5xl mx-auto">
-      <PageHeader standard="ISO 19011:2018" clause="Clause 7" title="Clause 7 — Auditor Competence"
+      <PageHeader standard="ISO 19011:2026" clause="Clause 7" title="Clause 7 — Auditor Competence"
         description="ISO 19011 Clause 7 defines the knowledge, skills, and personal attributes required of auditors and audit team leaders. Competence must be demonstrated, not just claimed — and maintained through continual professional development."
         badges={['Auditor Competence', 'CPD', 'Pre-Audit']} />
 
@@ -101,7 +103,7 @@ export default function Clause7() {
       </div>
 
       <AIPanel title="Generate Competence Documentation"
-        systemPrompt="You are an ISO 19011:2018 auditor competence specialist. Generate professional competence assessments, CPD plans, auditor training records, and independence declarations aligned to Clause 7 requirements."
+        systemPrompt="You are an ISO 19011:2026 auditor competence specialist. Generate professional competence assessments, CPD plans, auditor training records, and independence declarations aligned to Clause 7 requirements."
         placeholder="e.g. Generate an auditor competence assessment for a CISA-certified auditor conducting their first ISO 27001 audit"
         contextFields={[
           { id: 'role', label: 'Auditor Role', type: 'select', options: ['IS Audit Lead', 'IS Audit Team Member', 'Technical Specialist', 'Trainee Auditor'] },

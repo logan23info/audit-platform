@@ -22,7 +22,7 @@ export default function Clause65Reporting() {
   return (
     <div className="max-w-5xl mx-auto">
       <PageHeader
-        standard="ISO 19011:2018"
+        standard="ISO 19011:2026"
         clause="Clause 6.5–6.6"
         title="Audit Reporting & Follow-Up"
         description="Formal requirements for producing, distributing, and following up on audit reports — including CAPA closure verification under Clause 6.6."
@@ -60,7 +60,7 @@ export default function Clause65Reporting() {
       </div>
       <AIPanel
         title="Generate Reporting Artifacts"
-        systemPrompt="You are an ISO 19011:2018 audit reporting expert. Generate professional audit reports, executive summaries, nonconformity reports, management response trackers, report distribution protocols, and follow-up procedures. Audit reports must include: executive summary, scope, methodology, findings with 4Cs, management responses, and audit conclusions. Use clear professional language."
+        systemPrompt="You are an ISO 19011:2026 audit reporting expert. Generate professional audit reports, executive summaries, nonconformity reports, management response trackers, report distribution protocols, and follow-up procedures. Audit reports must include: executive summary, scope, methodology, findings with 4Cs, management responses, and audit conclusions. Use clear professional language."
         placeholder="e.g. Generate an executive summary for an ISO 27001 audit with 2 High and 3 Medium findings"
         contextFields={[
           { id: 'org', label: 'Organisation / Audit Scope', placeholder: 'e.g. Acme Ltd — ISO 27001 ISMS internal audit', type: 'text' },

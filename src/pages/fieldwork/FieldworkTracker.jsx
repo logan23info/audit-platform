@@ -190,7 +190,7 @@ export default function FieldworkTracker() {
       <div className="mt-6">
         <AIPanel
           title="AI — Generate Workpaper & Test Steps"
-          systemPrompt="You are an ISO 19011:2018 audit fieldwork specialist. Generate structured workpaper titles, TOD/TOI/TOE test steps, and evidence checklists for specific ISO 27001/27002 controls. Include: workpaper reference naming, testing objective, testing approach per phase, population definition for TOE, sample size justification, and expected evidence."
+          systemPrompt="You are an ISO 19011:2026 audit fieldwork specialist. Generate structured workpaper titles, TOD/TOI/TOE test steps, and evidence checklists for specific ISO 27001/27002 controls. Include: workpaper reference naming, testing objective, testing approach per phase, population definition for TOE, sample size justification, and expected evidence."
           placeholder="e.g. Generate a complete TOE workpaper for A.8.8 Vulnerability Management — monthly scan results for 6-month period"
           contextFields={[
             { id: 'control', label: 'Control / Clause', type: 'text', placeholder: 'e.g. ISO 27002 A.8.8 — Vulnerability Management' },

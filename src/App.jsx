@@ -28,7 +28,6 @@ const FAQ = lazy_(() => import('./pages/FAQ'))
 const Wiki = lazy_(() => import('./pages/Wiki'))
 const Profile = lazy_(() => import('./pages/Profile'))
 const ISO27000 = lazy_(() => import('./pages/iso27000/ISO27000'))
-const ISO27701 = lazy_(() => import('./pages/iso27701/ISO27701'))
 const Clause4 = lazy_(() => import('./pages/iso19011/Clause4'))
 const Clause5 = lazy_(() => import('./pages/iso19011/Clause5'))
 const Clause6Initiation = lazy_(() => import('./pages/iso19011/Clause6Initiation'))
@@ -59,8 +58,6 @@ const RiskRegister = lazy_(() => import('./pages/iso27005/RiskRegister'))
 const RTP = lazy_(() => import('./pages/iso27005/RTP'))
 const Scenarios = lazy_(() => import('./pages/iso27005/Scenarios'))
 const RiskRegisterLive = lazy_(() => import('./pages/reporting/RiskRegisterLive'))
-const AllClauses = lazy_(() => import('./pages/iso9001/AllClauses'))
-const AllPages = lazy_(() => import('./pages/ims/AllPages'))
 const PBCList = lazy_(() => import('./pages/fieldwork/PBCList'))
 const FieldworkTracker = lazy_(() => import('./pages/fieldwork/FieldworkTracker'))
 const FindingRegister = lazy_(() => import('./pages/fieldwork/FindingRegister'))
@@ -73,13 +70,6 @@ const CAPATracker = lazy_(() => import('./pages/reporting/CAPATracker'))
 const AuditUniverseLive = lazy_(() => import('./pages/reporting/AuditUniverseLive'))
 
 // Named exports need wrapper components
-const ISO9001Clause5 = lazy_(() => import('./pages/iso9001/AllClauses').then(m => ({ default: m.ISO9001Clause5 })))
-const ISO9001Clause7 = lazy_(() => import('./pages/iso9001/AllClauses').then(m => ({ default: m.ISO9001Clause7 })))
-const ISO9001Clause8 = lazy_(() => import('./pages/iso9001/AllClauses').then(m => ({ default: m.ISO9001Clause8 })))
-const ISO9001Clause9 = lazy_(() => import('./pages/iso9001/AllClauses').then(m => ({ default: m.ISO9001Clause9 })))
-const ISO9001Clause10 = lazy_(() => import('./pages/iso9001/AllClauses').then(m => ({ default: m.ISO9001Clause10 })))
-const IMSCrosswalk = lazy_(() => import('./pages/ims/AllPages').then(m => ({ default: m.IMSCrosswalk })))
-const IMSWorksheets = lazy_(() => import('./pages/ims/AllPages').then(m => ({ default: m.IMSWorksheets })))
 
 function AppShell() {
   const { user, loading } = useAuth()
@@ -144,15 +134,6 @@ function AppShell() {
               <Route path="/iso27005/live-register" element={<RiskRegisterLive />} />
               <Route path="/iso27005/rtp" element={<RTP />} />
               <Route path="/iso27005/scenarios" element={<Scenarios />} />
-              <Route path="/iso9001" element={<Navigate to="/iso9001/clause5" replace />} />
-              <Route path="/iso9001/clause5" element={<ISO9001Clause5 />} />
-              <Route path="/iso9001/clause7" element={<ISO9001Clause7 />} />
-              <Route path="/iso9001/clause8" element={<ISO9001Clause8 />} />
-              <Route path="/iso9001/clause9" element={<ISO9001Clause9 />} />
-              <Route path="/iso9001/clause10" element={<ISO9001Clause10 />} />
-              <Route path="/ims" element={<Navigate to="/ims/crosswalk" replace />} />
-              <Route path="/ims/crosswalk" element={<IMSCrosswalk />} />
-              <Route path="/ims/worksheets" element={<IMSWorksheets />} />
               <Route path="/fieldwork" element={<Navigate to="/fieldwork/tracker" replace />} />
               <Route path="/fieldwork/pbc" element={<PBCList />} />
               <Route path="/fieldwork/tracker" element={<FieldworkTracker />} />

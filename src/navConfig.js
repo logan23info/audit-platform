@@ -62,23 +62,6 @@ export const navSections = [
     ]
   },
   {
-    id: 'iso9001', label: 'ISO 9001 — QMS',
-    items: [
-      { id: '9001-cl5', label: 'Clause 5 — Leadership', path: '/iso9001/clause5', icon: 'Crown' },
-      { id: '9001-cl7', label: 'Clause 7 — Support', path: '/iso9001/clause7', icon: 'Wrench' },
-      { id: '9001-cl8', label: 'Clause 8 — Operations', path: '/iso9001/clause8', icon: 'Settings' },
-      { id: '9001-cl9', label: 'Clause 9 — Satisfaction', path: '/iso9001/clause9', icon: 'Star' },
-      { id: '9001-cl10', label: 'Clause 10 — CAPA', path: '/iso9001/clause10', icon: 'RefreshCw' },
-    ]
-  },
-  {
-    id: 'ims', label: 'IMS Cross-Walk',
-    items: [
-      { id: 'ims-crosswalk', label: '27001 × 9001 Alignment', path: '/ims/crosswalk', icon: 'GitMerge' },
-      { id: 'ims-worksheets', label: 'Joint Audit Worksheets', path: '/ims/worksheets', icon: 'FileCheck' },
-    ]
-  },
-  {
     id: 'fieldwork', label: 'Fieldwork Operations',
     items: [
       { id: 'pbc', label: 'PBC Master List ⭐ Live', path: '/fieldwork/pbc', icon: 'List' },

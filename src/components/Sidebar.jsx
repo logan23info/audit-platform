@@ -24,8 +24,7 @@ const iconMap = {
 
 const sectionColors = {
   iso19011: 'text-amber-audit', iso27000: 'text-steel-400', iso27001: 'text-blue-400',
-  iso27002: 'text-purple-400', iso27005: 'text-red-400', iso9001: 'text-emerald-400',
-  ims: 'text-cyan-400', fieldwork: 'text-orange-400', reporting: 'text-pink-400', core: 'text-steel-400',
+  iso27002: 'text-purple-400', iso27005: 'text-red-400',   fieldwork: 'text-orange-400', reporting: 'text-pink-400', core: 'text-steel-400',
 }
 
 // Tooltip descriptions for nav items
@@ -63,13 +62,6 @@ const navTooltips = {
   '/iso27005/live-register': '⭐ Live risk register — Asset × Threat × Vulnerability scoring',
   '/iso27005/rtp': 'Risk treatment plan — map risks to ISO 27002 controls',
   '/iso27005/scenarios': 'Generate realistic threat scenarios for risk assessment',
-  '/iso9001/clause5': 'QMS leadership, quality policy, roles and responsibilities',
-  '/iso9001/clause7': 'QMS support — resources, calibration, document control',
-  '/iso9001/clause8': 'QMS operations — product/service requirements, SDLC, supplier control',
-  '/iso9001/clause9': 'QMS performance — customer satisfaction, internal audit, management review',
-  '/iso9001/clause10': 'QMS improvement — nonconformity, CAPA, continual improvement',
-  '/ims/crosswalk': 'ISO 27001 × ISO 9001 clause alignment — joint documentation savings',
-  '/ims/worksheets': 'Joint audit worksheets — change management, vendor, SDLC',
   '/fieldwork/pbc': '⭐ PBC evidence tracker — tag by phase, domain, track receipt',
   '/fieldwork/tracker': '⭐ TOD/TOI/TOE progress per control with completion bar',
   '/fieldwork/findings': '⭐ Live finding register — 4Cs, ratings, management response',
@@ -166,7 +158,7 @@ export default function Sidebar({ mobileOpen, onClose }) {
               </Tooltip>
             </div>
           )}
-          <div className="text-xs text-steel-400 text-center">ISO 19011 · 27001 · 27002 · 27005 · 9001</div>
+          <div className="text-xs text-steel-400 text-center">ISO 19011 · 27001 · 27002 · 27005</div>
         </div>
       </aside>
     </>

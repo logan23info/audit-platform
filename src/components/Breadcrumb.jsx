@@ -17,8 +17,6 @@ const sectionPaths = {
   'ISO 27001 — ISMS': '/iso27001/clause4',
   'ISO 27002 — Controls': '/iso27002/organizational',
   'ISO 27005 — Risk': '/iso27005/assets',
-  'ISO 9001 — QMS': '/iso9001/clause5',
-  'IMS Cross-Walk': '/ims/crosswalk',
   'Fieldwork Operations': '/fieldwork/tracker',
   'Reporting & Governance': '/reporting/builder',
   'Platform': '/',

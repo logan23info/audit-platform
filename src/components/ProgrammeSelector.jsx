@@ -4,7 +4,7 @@ import { useProgramme } from '../context/ProgrammeContext'
 import { useAuth } from '../context/AuthContext'
 import { createProgramme, updateProgramme } from '../lib/supabase'
 
-const STANDARDS = ['ISO 27001', 'ISO 27002', 'ISO 27005', 'ISO 9001', 'ISO 19011', 'IMS']
+const STANDARDS = ['ISO 27001', 'ISO 27002', 'ISO 27005', 'ISO 19011']
 
 export default function ProgrammeSelector() {
   const { user } = useAuth()

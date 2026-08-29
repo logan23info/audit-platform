@@ -64,7 +64,6 @@ const standards = [
   { std: 'ISO 27001:2022', color: 'text-blue-400', role: 'ISMS requirements — WHAT the org must do', pages: 'Clause 4 through 10' },
   { std: 'ISO 27002:2022', color: 'text-purple-400', role: 'Controls guidance — 93 Annex A controls with audit testing points', pages: 'Organizational (37), People (8), Physical (14), Technological (34) + Net-New 11' },
   { std: 'ISO 27005:2022', color: 'text-red-400', role: 'Risk management — Asset × Threat × Vulnerability + STRIDE', pages: 'Asset Register ⭐ Live, Risk Register ⭐ Live, RTP (control mapping), Scenarios (6 pre-built + AI)' },
-  { std: 'ISO 9001:2015', color: 'text-emerald-400', role: 'QMS — kept separate under IMS', pages: 'Clause 5, 7, 8, 9, 10' },
   { std: 'IMS Cross-Walk', color: 'text-cyan-400', role: 'ISO 27001 × ISO 9001 — 18 shared clauses, 30-40% saving', pages: 'Cross-Walk Matrix (18 clauses), Joint Worksheets (Change, Supplier, Incident, SDLC)' },
 ]
 

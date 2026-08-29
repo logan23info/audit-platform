@@ -217,7 +217,7 @@ export default function Wiki() {
 
       <div className="card text-center">
         <div className="text-xs text-steel-400 mb-2">AuditIQ — IT Audit Intelligence Platform</div>
-        <div className="text-xs text-steel-500 mb-4">ISO 19011 · 27001 · 27002 · 27005 · 9001 · Powered by Groq AI (Free)</div>
+        <div className="text-xs text-steel-500 mb-4">ISO 19011 · 27001 · 27002 · 27005 · Powered by Groq AI (Free)</div>
         <div className="flex flex-wrap gap-2 justify-center">
           <button onClick={() => navigate('/faq')} className="btn-secondary text-xs">FAQ</button>
           <a href="https://github.com/logan23info/audit-platform#readme" target="_blank" rel="noreferrer" className="btn-secondary text-xs"><ExternalLink size={11} /> GitHub README</a>

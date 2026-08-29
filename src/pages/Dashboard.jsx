@@ -104,7 +104,7 @@ export default function Dashboard() {
             </div>
             <h2 className="font-display text-2xl font-bold text-white mb-1">AuditIQ</h2>
             <p className="text-steel-300 text-sm max-w-xl leading-relaxed">
-              IT Audit Intelligence Platform — ISO 19011 · 27001 · 27002 · 27005 · 9001
+              IT Audit Intelligence Platform — ISO 19011 · 27001 · 27002 · 27005
             </p>
           </div>
           <button onClick={() => navigate('/iso19011/clause4')} className="btn-primary flex-shrink-0">

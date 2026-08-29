@@ -5,6 +5,7 @@ import AIPanel from '../../components/AIPanel'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
 import { getSoA, getISMSImplementation, getSites, createPBCItem } from '../../lib/supabase'
+import SignoffPanel from '../../components/SignoffPanel'
 import { controls as annexAControls } from '../../data/iso27002_controls'
 import { useToast } from '../../components/Toast'
 
@@ -105,6 +106,11 @@ export default function ISMSAudit() {
               <div className="text-xs text-steel-400">Every Annex A control needs an applicability decision with a justification (if Applicable) or exclusion reason (if Not Applicable) in the SoA before Stage 1 documentation review can proceed.</div>
             </div>
           )}
+
+          <div className="grid sm:grid-cols-2 gap-4 mb-6">
+            <SignoffPanel programmeId={activeProgramme.id} scopeType="stage1_readiness" label="Stage 1 Sign-off" />
+            <SignoffPanel programmeId={activeProgramme.id} scopeType="stage2_readiness" label="Stage 2 Sign-off" />
+          </div>
 
           <div className="card mb-6">
             <div className="flex items-center justify-between mb-3">

@@ -53,7 +53,7 @@ export default function Dashboard() {
     getSoA(activeProgramme.id).then(soaRows => {
       const applicable = soaRows.filter(r => r.applicable === 'Yes').length
       return getISMSImplementation(activeProgramme.id).then(implRows => {
-        const verified = implRows.filter(r => r.status === 'Implemented' && r.evidence_url).length
+        const verified = implRows.filter(r => r.status === 'Implemented' && (r.evidence_url || r.evidence_file_path)).length
         setIsms({ applicable, verified, total: annexAControls.length })
       })
     }).catch(() => {})

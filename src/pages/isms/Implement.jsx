@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { FileDown, Loader2, ExternalLink } from 'lucide-react'
+import { FileDown, Loader2, ExternalLink, Paperclip } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
 import { exportToCSV } from '../../utils/exportCSV'
 import { controls, themeColors } from '../../data/iso27002_controls'
 import { useProgramme } from '../../context/ProgrammeContext'
 import { useAuth } from '../../context/AuthContext'
-import { getSoA, getISMSImplementation, upsertISMSControl, logControlHistory } from '../../lib/supabase'
+import { getSoA, getISMSImplementation, upsertISMSControl, logControlHistory, uploadFile, getSignedUrl, buildEvidenceFilePath } from '../../lib/supabase'
 import { useToast } from '../../components/Toast'
 import { debounce } from '../../lib/debounce'
 
@@ -22,8 +22,9 @@ const TEXT_FIELDS = ['policy_ref', 'owner', 'notes', 'evidence_url']
 //   Yes          | Implemented  | Yes      | Implemented — Verified
 function displayStatus(row) {
   if (!row) return { label: 'Not Started', color: 'text-steel-400 bg-navy-700' }
-  if (row.status === 'Implemented' && !row.evidence_url) return { label: 'Implemented — Unverified', color: 'text-amber-audit bg-amber-900/30 border border-amber-700' }
-  if (row.status === 'Implemented' && row.evidence_url) return { label: 'Implemented — Verified', color: 'text-emerald-400 bg-emerald-900/30 border border-emerald-700' }
+  const hasEvidence = !!(row.evidence_url || row.evidence_file_path)
+  if (row.status === 'Implemented' && !hasEvidence) return { label: 'Implemented — Unverified', color: 'text-amber-audit bg-amber-900/30 border border-amber-700' }
+  if (row.status === 'Implemented' && hasEvidence) return { label: 'Implemented — Verified', color: 'text-emerald-400 bg-emerald-900/30 border border-emerald-700' }
   if (row.status === 'In Progress') return { label: 'In Progress', color: 'text-blue-400 bg-blue-900/30 border border-blue-700' }
   return { label: 'Not Started', color: 'text-steel-400 bg-navy-700' }
 }
@@ -35,7 +36,7 @@ const IMPL_COLUMNS = [
   { label: 'Evidence URL', key: 'evidence_url' }, { label: 'Notes', key: 'notes' },
 ]
 
-const emptyImpl = () => ({ status: 'Not Started', policy_ref: '', evidence_url: '', owner: '', target_date: '', verified: false, notes: '' })
+const emptyImpl = () => ({ status: 'Not Started', policy_ref: '', evidence_url: '', evidence_file_path: '', owner: '', target_date: '', verified: false, notes: '' })
 
 export default function ISMSImplement() {
   const { user } = useAuth()
@@ -45,6 +46,7 @@ export default function ISMSImplement() {
   const [implData, setImplData] = useState({})
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
+  const [uploadingRef, setUploadingRef] = useState(null)
   const [search, setSearch] = useState('')
 
   const load = useCallback(async () => {
@@ -55,7 +57,7 @@ export default function ISMSImplement() {
       const soa = {}
       soaRows.forEach(r => { soa[r.control_id] = r.applicable })
       const impl = controls.reduce((acc, c) => ({ ...acc, [c.ref]: emptyImpl() }), {})
-      implRows.forEach(r => { impl[r.control_id] = { status: r.status, policy_ref: r.policy_ref || '', evidence_url: r.evidence_url || '', owner: r.owner || '', target_date: r.target_date || '', verified: r.verified, notes: r.notes || '' } })
+      implRows.forEach(r => { impl[r.control_id] = { status: r.status, policy_ref: r.policy_ref || '', evidence_url: r.evidence_url || '', evidence_file_path: r.evidence_file_path || '', owner: r.owner || '', target_date: r.target_date || '', verified: r.verified, notes: r.notes || '' } })
       setSoaMap(soa)
       setImplData(impl)
     } catch (e) { toast('Failed to load: ' + e.message, 'error') }
@@ -86,6 +88,23 @@ export default function ISMSImplement() {
     }
   }
 
+  const uploadEvidence = async (ref, file) => {
+    if (!activeProgramme || !user) return
+    setUploadingRef(ref)
+    try {
+      const filePath = buildEvidenceFilePath({ userId: user.id, programmeId: activeProgramme.id, controlId: ref, originalName: file.name })
+      await uploadFile({ file, filePath })
+      update(ref, 'evidence_file_path', filePath)
+      toast('Evidence uploaded', 'success')
+    } catch (e) { toast('Upload failed — ' + ref + ': ' + e.message, 'error') }
+    setUploadingRef(null)
+  }
+
+  const viewEvidence = async (filePath) => {
+    try { window.open(await getSignedUrl(filePath), '_blank') }
+    catch (e) { toast('Could not open evidence: ' + e.message, 'error') }
+  }
+
   // Layer 2 reads Layer 1 (SoA) applicability as source of truth — non-applicable controls excluded
   const applicableControls = controls.filter(c => (soaMap[c.ref] ?? 'Yes') === 'Yes')
   const filtered = applicableControls.filter(c =>
@@ -96,8 +115,8 @@ export default function ISMSImplement() {
     applicable: applicableControls.length,
     notStarted: applicableControls.filter(c => (implData[c.ref]?.status || 'Not Started') === 'Not Started').length,
     inProgress: applicableControls.filter(c => implData[c.ref]?.status === 'In Progress').length,
-    verified: applicableControls.filter(c => implData[c.ref]?.status === 'Implemented' && implData[c.ref]?.evidence_url).length,
-    unverified: applicableControls.filter(c => implData[c.ref]?.status === 'Implemented' && !implData[c.ref]?.evidence_url).length,
+    verified: applicableControls.filter(c => implData[c.ref]?.status === 'Implemented' && (implData[c.ref]?.evidence_url || implData[c.ref]?.evidence_file_path)).length,
+    unverified: applicableControls.filter(c => implData[c.ref]?.status === 'Implemented' && !implData[c.ref]?.evidence_url && !implData[c.ref]?.evidence_file_path).length,
   }
 
   const exportData = applicableControls.map(c => ({ ...c, ...implData[c.ref] }))
@@ -171,10 +190,17 @@ export default function ISMSImplement() {
                         </select>
                         <div className={`mt-1 text-xs px-1.5 py-0.5 rounded inline-block ${ds.color}`}>{ds.label}</div>
                       </td>
-                      <td className="py-2 px-3 min-w-40">
-                        <div className="flex items-center gap-1">
+                      <td className="py-2 px-3 min-w-48">
+                        <div className="flex items-center gap-1 mb-1">
                           <input className="input-field text-xs py-0.5 w-full" placeholder="Evidence URL / link" value={row.evidence_url} onChange={e => update(c.ref, 'evidence_url', e.target.value)} />
                           {row.evidence_url && <a href={row.evidence_url} target="_blank" rel="noreferrer" className="text-steel-400 hover:text-amber-audit flex-shrink-0"><ExternalLink size={12} /></a>}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <label className="btn-secondary text-xs py-0.5 px-2 cursor-pointer whitespace-nowrap">
+                            {uploadingRef === c.ref ? <Loader2 size={11} className="animate-spin" /> : <Paperclip size={11} />} {row.evidence_file_path ? 'Replace file' : 'Upload file'}
+                            <input type="file" className="hidden" onChange={e => e.target.files[0] && uploadEvidence(c.ref, e.target.files[0])} />
+                          </label>
+                          {row.evidence_file_path && <button onClick={() => viewEvidence(row.evidence_file_path)} className="text-steel-400 hover:text-amber-audit text-xs">View</button>}
                         </div>
                       </td>
                     </tr>

@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import Tooltip from './Tooltip'
 import { useProgramme } from '../context/ProgrammeContext'
-import { getFindings, getPBCItems } from '../lib/supabase'
+import { getFindings, getPBCItems, getSignoffs } from '../lib/supabase'
 
 function getPageTitle(pathname) {
   for (const section of navSections) {
@@ -43,9 +43,11 @@ export default function Header({ onMenuClick }) {
     if (!activeProgramme) return
     const load = async () => {
       try {
-        const [findings, pbc] = await Promise.all([
+        const [findings, pbc, stage1Signoffs, stage2Signoffs] = await Promise.all([
           getFindings(activeProgramme.id),
           getPBCItems(activeProgramme.id),
+          getSignoffs(activeProgramme.id, 'stage1_readiness').catch(() => []),
+          getSignoffs(activeProgramme.id, 'stage2_readiness').catch(() => []),
         ])
         const notifs = []
         const today = new Date()
@@ -72,6 +74,17 @@ export default function Header({ onMenuClick }) {
           id: 'pbc-out', title: `${outstanding} PBC Items Not Started`,
           desc: 'Evidence requests outstanding from auditee', time: activeProgramme.programme_id,
           type: 'info', path: '/fieldwork/pbc'
+        })
+
+        // Pending certification sign-offs (Sprint 11) — only nudge once workpapers exist,
+        // so a brand-new empty programme doesn't immediately show this
+        if (findings.length + pbc.length > 0 && stage1Signoffs.length === 0) notifs.push({
+          id: 'signoff-s1', title: 'Stage 1 not yet signed off', desc: 'Certification readiness awaiting Owner/Reviewer approval',
+          time: activeProgramme.programme_id, type: 'info', path: '/fieldwork/isms-audit'
+        })
+        else if (stage1Signoffs.length > 0 && stage2Signoffs.length === 0) notifs.push({
+          id: 'signoff-s2', title: 'Stage 2 not yet signed off', desc: 'Stage 1 approved — Stage 2 implementation audit awaiting sign-off',
+          time: activeProgramme.programme_id, type: 'info', path: '/fieldwork/isms-audit'
         })
 
         // If no real notifs, show programme info

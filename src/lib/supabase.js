@@ -318,7 +318,41 @@ export async function logControlHistory(row) {
   if (error) throw error
 }
 
+// ─── Sign-offs (Sprint 11, approval stamps) ─────────────────────────────
+export async function getSignoffs(programmeId, scopeType, scopeRef = null) {
+  let q = supabase.from('isms_signoffs').select('*').eq('programme_id', programmeId).eq('scope_type', scopeType)
+  q = scopeRef == null ? q.is('scope_ref', null) : q.eq('scope_ref', scopeRef)
+  const { data, error } = await q.order('created_at', { ascending: false })
+  if (error) throw error
+  return data
+}
+
+export async function addSignoff(row) {
+  const { data, error } = await supabase.from('isms_signoffs').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteSignoff(id) {
+  const { error } = await supabase.from('isms_signoffs').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ─── Evidence file upload (Sprint 11) — reuses the 'workpapers' bucket ──
+export function buildEvidenceFilePath({ userId, programmeId, controlId, originalName }) {
+  const ext = originalName.split('.').pop()
+  const baseName = originalName.replace(/\.[^/.]+$/, '').replace(/[^a-zA-Z0-9]/g, '_').slice(0, 40)
+  const date = new Date().toISOString().split('T')[0]
+  return `${userId}/${programmeId}/isms-evidence/${controlId}/${date}_${baseName}.${ext}`
+}
+
 // ─── Team Members (Sprint 10, multi-auditor access) ────────────────────
+export async function getMyRole(programmeId, userId) {
+  const { data, error } = await supabase.from('programme_members').select('role').eq('programme_id', programmeId).eq('user_id', userId).maybeSingle()
+  if (error) throw error
+  return data?.role || null
+}
+
 export async function getProgrammeMembers(programmeId) {
   const { data, error } = await supabase
     .from('programme_members')

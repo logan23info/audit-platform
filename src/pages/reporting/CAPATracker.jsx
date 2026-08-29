@@ -6,11 +6,12 @@ import { useProgramme } from '../../context/ProgrammeContext'
 import { getFindings, updateFinding } from '../../lib/supabase'
 import AIPanel from '../../components/AIPanel'
 import { useToast } from '../../components/Toast'
+import SignoffPanel from '../../components/SignoffPanel'
 
 const ratingColor = { Critical: 'border-l-red-500', High: 'border-l-orange-500', Medium: 'border-l-amber-500', 'Low / Advisory': 'border-l-navy-600' }
 const statusBadge = { Open: 'bg-red-900/40 text-red-300', 'In Progress': 'bg-amber-900/40 text-amber-300', Closed: 'bg-emerald-900/40 text-emerald-300' }
 
-function CAPARow({ finding, onUpdate }) {
+function CAPARow({ finding, onUpdate, programmeId }) {
   const { toast } = useToast()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -65,6 +66,7 @@ function CAPARow({ finding, onUpdate }) {
                 <div className={`bg-navy-800 rounded-lg p-3 ${isOverdue ? 'border border-red-700' : ''}`}><div className="text-steel-400 mb-1">Due Date</div><div className={`text-white ${isOverdue ? 'text-red-400 font-bold' : ''}`}>{finding.due_date || '—'}</div></div>
               </div>
               <button onClick={() => setEditing(true)} className="btn-secondary text-xs py-1.5">Update CAPA</button>
+              {programmeId && <SignoffPanel programmeId={programmeId} scopeType="finding" scopeRef={finding.id} label="Finding Sign-off" />}
             </div>
           ) : (
             <div className="bg-navy-800 rounded-lg p-4 space-y-3">
@@ -157,7 +159,7 @@ export default function CAPATracker() {
         <div className="card text-center py-12"><CheckCircle2 size={28} className="text-steel-500 mx-auto mb-3" /><div className="text-white font-medium mb-1">{findings.length === 0 ? 'No findings raised yet' : 'No findings match this filter'}</div><div className="text-xs text-steel-400">Raise findings from Fieldwork → Finding Register</div></div>
       ) : (
         <div className="space-y-3">
-          {filtered.map(f => <CAPARow key={f.id} finding={f} onUpdate={updated => setFindings(prev => prev.map(x => x.id === updated.id ? updated : x))} />)}
+          {filtered.map(f => <CAPARow key={f.id} finding={f} programmeId={activeProgramme?.id} onUpdate={updated => setFindings(prev => prev.map(x => x.id === updated.id ? updated : x))} />)}
         </div>
       )}
     </div>

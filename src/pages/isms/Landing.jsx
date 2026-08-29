@@ -17,7 +17,7 @@ export default function ISMSLanding() {
     try {
       const [soaRows, implRows] = await Promise.all([getSoA(activeProgramme.id), getISMSImplementation(activeProgramme.id)])
       const applicable = soaRows.filter(r => r.applicable === 'Yes').length
-      const verified = implRows.filter(r => r.status === 'Implemented' && r.evidence_url).length
+      const verified = implRows.filter(r => r.status === 'Implemented' && (r.evidence_url || r.evidence_file_path)).length
       setStats({ applicable, verified, total: controls.length })
     } catch (e) { /* silent — landing is summary-only */ }
     setLoading(false)

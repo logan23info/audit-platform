@@ -48,7 +48,7 @@ export default function ManagementReview() {
       const applicableRefs = annexAControls.filter(c => (soaMap[c.ref] ?? 'Yes') === 'Yes').map(c => c.ref)
       setIsms({
         applicable: applicableRefs.length,
-        verified: applicableRefs.filter(ref => implMap[ref]?.status === 'Implemented' && implMap[ref]?.evidence_url).length,
+        verified: applicableRefs.filter(ref => implMap[ref]?.status === 'Implemented' && (implMap[ref]?.evidence_url || implMap[ref]?.evidence_file_path)).length,
         exceptions: applicableRefs.filter(ref => ['Exception', 'Fail'].includes(implMap[ref]?.test_result)).length,
       })
     } catch (e) { console.error(e) }

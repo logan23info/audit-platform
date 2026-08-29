@@ -6,6 +6,7 @@ export const navSections = [
       { id: 'wiki', label: 'How to Use (Wiki)', path: '/wiki', icon: 'BookOpen' },
       { id: 'faq', label: 'FAQ', path: '/faq', icon: 'HelpCircle' },
       { id: 'profile', label: 'My Profile', path: '/profile', icon: 'User' },
+      { id: 'team', label: 'Team Members ⭐ New', path: '/team', icon: 'Users' },
     ]
   },
   {

@@ -27,6 +27,7 @@ import ComingSoon from './pages/ComingSoon'
 const FAQ = lazy_(() => import('./pages/FAQ'))
 const Wiki = lazy_(() => import('./pages/Wiki'))
 const Profile = lazy_(() => import('./pages/Profile'))
+const TeamMembers = lazy_(() => import('./pages/TeamMembers'))
 const ISO27000 = lazy_(() => import('./pages/iso27000/ISO27000'))
 const Clause4 = lazy_(() => import('./pages/iso19011/Clause4'))
 const Clause5 = lazy_(() => import('./pages/iso19011/Clause5'))
@@ -105,6 +106,7 @@ function AppShell() {
               <Route path="/wiki" element={<Wiki />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/team" element={<TeamMembers />} />
               <Route path="/iso27000" element={<ISO27000 />} />
               <Route path="/iso19011" element={<Navigate to="/iso19011/clause4" replace />} />
               <Route path="/iso19011/clause4" element={<Clause4 />} />

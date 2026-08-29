@@ -318,6 +318,49 @@ export async function logControlHistory(row) {
   if (error) throw error
 }
 
+// ─── Team Members (Sprint 10, multi-auditor access) ────────────────────
+export async function getProgrammeMembers(programmeId) {
+  const { data, error } = await supabase
+    .from('programme_members')
+    .select('*')
+    .eq('programme_id', programmeId)
+    .order('created_at')
+  if (error) throw error
+  return data
+}
+
+// Invites a user by email and adds them to the programme with the given role.
+// ASSUMPTION — adjust to match your actual edge function's name/payload if different:
+// expects an edge function named 'invite-member' that takes
+// { email, programme_id, role } and returns { user_id } for the invited/matched user.
+// If your function's contract differs, only this one function needs to change.
+export async function inviteProgrammeMember({ programmeId, email, role, invitedBy }) {
+  const { data: fnData, error: fnError } = await supabase.functions.invoke('invite-member', {
+    body: { email, programme_id: programmeId, role },
+  })
+  if (fnError) throw fnError
+  if (!fnData?.user_id) throw new Error('Invite function did not return a user_id')
+
+  const { data, error } = await supabase
+    .from('programme_members')
+    .insert({ programme_id: programmeId, user_id: fnData.user_id, role, invited_by: invitedBy })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function updateMemberRole(id, role) {
+  const { data, error } = await supabase.from('programme_members').update({ role }).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function removeMember(id) {
+  const { error } = await supabase.from('programme_members').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── ISMS — RCM Sample Items (Sprint 8, audit-defensible testing detail) ───
 export async function getRCMSamples(programmeId, controlId) {
   let q = supabase.from('isms_rcm_samples').select('*').eq('programme_id', programmeId)

@@ -43,6 +43,13 @@ export const navSections = [
     ]
   },
   {
+    id: 'isms', label: 'ISMS Implementation',
+    items: [
+      { id: 'isms-landing', label: 'ISMS Overview', path: '/isms', icon: 'ShieldCheck' },
+      { id: 'isms-implement', label: 'Layer 2 — Implement Controls', path: '/isms/implement', icon: 'ClipboardList' },
+    ]
+  },
+  {
     id: 'iso27002', label: 'ISO 27002 — Controls',
     items: [
       { id: '27002-org', label: 'Organizational (5.1–5.37)', path: '/iso27002/organizational', icon: 'Building2' },

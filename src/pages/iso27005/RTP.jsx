@@ -1,6 +1,12 @@
+import { useState, useEffect, useCallback } from 'react'
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Plus, Trash2, Loader2 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import { useProgramme } from '../../context/ProgrammeContext'
+import { useToast } from '../../components/Toast'
+import { getRisks, getRiskControlLinks, createRiskControlLink, deleteRiskControlLink } from '../../lib/supabase'
+import { controls as annexAControls } from '../../data/iso27002_controls'
 
 const treatmentOptions = [
   { option: 'Mitigate', desc: 'Implement controls to reduce likelihood or impact below risk appetite', when: 'Risk is above appetite and cost of control is less than cost of risk materialising', examples: ['Patch management programme', 'MFA implementation', 'DLP tool deployment', 'Security awareness training'] },
@@ -27,6 +33,86 @@ const scoreColor = (s) => {
   if (n >= 15) return 'text-red-400 font-bold'
   if (n >= 9) return 'text-amber-audit font-bold'
   return 'text-emerald-400 font-bold'
+}
+
+function LiveRiskControlMap() {
+  const { user } = useAuth()
+  const { activeProgramme } = useProgramme()
+  const { toast } = useToast()
+  const [risks, setRisks] = useState([])
+  const [links, setLinks] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({ risk_id: '', control_id: '', treatment_rationale: '' })
+  const [saving, setSaving] = useState(false)
+
+  const load = useCallback(async () => {
+    if (!activeProgramme) return
+    setLoading(true)
+    try {
+      const [r, l] = await Promise.all([getRisks(activeProgramme.id), getRiskControlLinks(activeProgramme.id)])
+      setRisks(r); setLinks(l)
+    } catch (e) { toast('Failed to load: ' + e.message, 'error') }
+    setLoading(false)
+  }, [activeProgramme])
+
+  useEffect(() => { load() }, [load])
+
+  const addLink = async () => {
+    if (!form.risk_id || !form.control_id) return
+    setSaving(true)
+    try {
+      const row = await createRiskControlLink({ programme_id: activeProgramme.id, user_id: user?.id, ...form })
+      setLinks(p => [...p, row])
+      setForm({ risk_id: '', control_id: '', treatment_rationale: '' })
+    } catch (e) { toast('Save failed: ' + e.message, 'error') }
+    setSaving(false)
+  }
+
+  const removeLink = async (id) => {
+    try { await deleteRiskControlLink(id); setLinks(p => p.filter(l => l.id !== id)) }
+    catch (e) { toast('Delete failed', 'error') }
+  }
+
+  if (!activeProgramme) return <div className="card text-center py-8 mb-6 text-steel-400 text-sm">Select an audit programme to link risks to controls.</div>
+
+  return (
+    <div className="card mb-6">
+      <h2 className="section-title mb-1">Risk ↔ Control Map — Live (Cl. 6.1.3)</h2>
+      <p className="text-xs text-steel-400 mb-4">Real, DB-backed mapping of this programme's actual risk register entries to Annex A controls. Feeds ISMS Implementation (Layer 2) prioritisation.</p>
+      <div className="flex flex-wrap gap-2 mb-4">
+        <select className="input-field text-xs py-1.5 flex-1 min-w-40" value={form.risk_id} onChange={e => setForm(p => ({ ...p, risk_id: e.target.value }))}>
+          <option value="">Select risk...</option>
+          {risks.map(r => <option key={r.id} value={r.id}>{r.risk_ref} — {r.asset}</option>)}
+        </select>
+        <select className="input-field text-xs py-1.5 flex-1 min-w-40" value={form.control_id} onChange={e => setForm(p => ({ ...p, control_id: e.target.value }))}>
+          <option value="">Select control...</option>
+          {annexAControls.map(c => <option key={c.ref} value={c.ref}>{c.ref} — {c.title}</option>)}
+        </select>
+        <input className="input-field text-xs py-1.5 flex-1 min-w-40" placeholder="Treatment rationale" value={form.treatment_rationale} onChange={e => setForm(p => ({ ...p, treatment_rationale: e.target.value }))} />
+        <button onClick={addLink} disabled={saving || !form.risk_id || !form.control_id} className="btn-primary text-xs py-1.5"><Plus size={12} /> Link</button>
+      </div>
+      {loading ? <Loader2 size={18} className="animate-spin text-steel-400 mx-auto" /> : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead><tr className="border-b border-navy-700 bg-navy-800/50">{['Risk', 'Control', 'Rationale', ''].map(h => <th key={h} className="text-left py-2 px-3 text-steel-400 font-medium">{h}</th>)}</tr></thead>
+            <tbody>
+              {links.length === 0 ? <tr><td colSpan={4} className="py-8 text-center text-steel-400">No links yet</td></tr> : links.map(l => {
+                const risk = risks.find(r => r.id === l.risk_id)
+                return (
+                  <tr key={l.id} className="border-b border-navy-800">
+                    <td className="py-2 px-3 text-white">{risk?.risk_ref || '—'} {risk?.asset ? `— ${risk.asset}` : ''}</td>
+                    <td className="py-2 px-3 text-blue-400 font-mono">{l.control_id}</td>
+                    <td className="py-2 px-3 text-steel-300">{l.treatment_rationale}</td>
+                    <td className="py-2 px-3"><button onClick={() => removeLink(l.id)} className="text-steel-500 hover:text-red-400"><Trash2 size={13} /></button></td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function RTP() {
@@ -62,9 +148,11 @@ export default function RTP() {
         ))}
       </div>
 
+      <LiveRiskControlMap />
+
       <div className="card mb-6">
-        <h2 className="section-title mb-3">Risk → Control Mapping — ISO 27002 Annex A</h2>
-        <p className="text-xs text-steel-400 mb-4">Common risk scenarios mapped to applicable ISO 27002:2022 controls with indicative inherent and residual scores (1–25 scale).</p>
+        <h2 className="section-title mb-3">Risk → Control Mapping — Illustrative Reference</h2>
+        <p className="text-xs text-steel-400 mb-4">Common risk scenarios mapped to applicable ISO 27002:2022 controls with indicative inherent and residual scores (1–25 scale). Static reference examples — use the live map above to link your programme's actual risks.</p>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead><tr className="border-b border-navy-700 bg-navy-800/50">

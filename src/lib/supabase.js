@@ -231,3 +231,68 @@ export async function deleteWorkpaperRecord(id) {
   const { error } = await supabase.from('workpapers').delete().eq('id', id)
   if (error) throw error
 }
+
+// ─── ISMS — SoA (Layer 1) ──────────────────────────────────────
+export async function getSoA(programmeId) {
+  const { data, error } = await supabase
+    .from('isms_soa')
+    .select('*')
+    .eq('programme_id', programmeId)
+  if (error) throw error
+  return data
+}
+
+export async function upsertSoAControl(row) {
+  const { data, error } = await supabase
+    .from('isms_soa')
+    .upsert(row, { onConflict: 'programme_id,control_id' })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+// ─── ISMS — Implementation (Layer 2) ────────────────────────────
+export async function getISMSImplementation(programmeId) {
+  const { data, error } = await supabase
+    .from('isms_implementation')
+    .select('*')
+    .eq('programme_id', programmeId)
+  if (error) throw error
+  return data
+}
+
+export async function upsertISMSControl(row) {
+  const { data, error } = await supabase
+    .from('isms_implementation')
+    .upsert(row, { onConflict: 'programme_id,control_id' })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+// ─── ISMS — Risk ↔ Control Map (Cl. 6.1.3) ─────────────────────
+export async function getRiskControlLinks(programmeId) {
+  const { data, error } = await supabase
+    .from('isms_risk_control_map')
+    .select('*')
+    .eq('programme_id', programmeId)
+  if (error) throw error
+  return data
+}
+
+export async function createRiskControlLink(row) {
+  const { data, error } = await supabase
+    .from('isms_risk_control_map')
+    .insert(row)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteRiskControlLink(id) {
+  const { error } = await supabase.from('isms_risk_control_map').delete().eq('id', id)
+  if (error) throw error
+}

@@ -48,6 +48,8 @@ const ISO27001SoA = lazy_(() => import('./pages/iso27001/SoA'))
 const ISO27001Clause8 = lazy_(() => import('./pages/iso27001/Clause8'))
 const ISO27001Clause9 = lazy_(() => import('./pages/iso27001/Clause9'))
 const ISO27001Clause10 = lazy_(() => import('./pages/iso27001/Clause10'))
+const ISMSLanding = lazy_(() => import('./pages/isms/Landing'))
+const ISMSImplement = lazy_(() => import('./pages/isms/Implement'))
 const Organizational = lazy_(() => import('./pages/iso27002/Organizational'))
 const People = lazy_(() => import('./pages/iso27002/People'))
 const Physical = lazy_(() => import('./pages/iso27002/Physical'))
@@ -122,6 +124,8 @@ function AppShell() {
               <Route path="/iso27001/clause8" element={<ISO27001Clause8 />} />
               <Route path="/iso27001/clause9" element={<ISO27001Clause9 />} />
               <Route path="/iso27001/clause10" element={<ISO27001Clause10 />} />
+              <Route path="/isms" element={<ISMSLanding />} />
+              <Route path="/isms/implement" element={<ISMSImplement />} />
               <Route path="/iso27002" element={<Navigate to="/iso27002/organizational" replace />} />
               <Route path="/iso27002/organizational" element={<Organizational />} />
               <Route path="/iso27002/people" element={<People />} />

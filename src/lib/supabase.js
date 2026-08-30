@@ -443,6 +443,30 @@ export async function deleteSite(id) {
   if (error) throw error
 }
 
+// ─── ISMS — Supplier Audit register (Sprint 15, Annex A.5.19–23) ───
+export async function getSupplierAudits(programmeId) {
+  const { data, error } = await supabase.from('isms_supplier_audits').select('*').eq('programme_id', programmeId).order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function createSupplierAudit(row) {
+  const { data, error } = await supabase.from('isms_supplier_audits').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function updateSupplierAudit(id, updates) {
+  const { data, error } = await supabase.from('isms_supplier_audits').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteSupplierAudit(id) {
+  const { error } = await supabase.from('isms_supplier_audits').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── ISMS — Control ↔ Site cross-reference (Cl. 4.3) ────────────
 export async function getControlSites(programmeId) {
   const { data, error } = await supabase.from('isms_control_sites').select('*').eq('programme_id', programmeId)

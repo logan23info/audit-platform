@@ -49,6 +49,8 @@ export const navSections = [
       { id: 'isms-landing', label: 'ISMS Overview', path: '/isms', icon: 'ShieldCheck' },
       { id: 'isms-implement', label: 'Layer 2 — Implement Controls', path: '/isms/implement', icon: 'ClipboardList' },
       { id: 'isms-rcm', label: 'Risk Control Matrix ⭐ New', path: '/isms/rcm', icon: 'Table' },
+      { id: 'isms-suppliers', label: 'Supplier Audit ⭐ New', path: '/isms/suppliers', icon: 'Truck' },
+      { id: 'isms-gap-analysis', label: 'Gap Analysis ⭐ New', path: '/isms/gap-analysis', icon: 'Target' },
       { id: 'isms-scope', label: 'Multi-site Scope Register', path: '/isms/scope', icon: 'Map' },
       { id: 'isms-history', label: 'Control History', path: '/isms/history', icon: 'History' },
     ]

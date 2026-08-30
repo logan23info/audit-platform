@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useProgramme } from '../context/ProgrammeContext'
 import { getWorkpapers, getFindings, getRisks, getPBCItems, getSoA, getISMSImplementation } from '../lib/supabase'
 import { controls as annexAControls } from '../data/iso27002_controls'
+import OnboardingModal from '../components/OnboardingModal'
 
 const quickAccess = [
   { label: 'Clause 4 — Principles', path: '/iso19011/clause4', tag: 'ISO 19011', color: 'border-amber-audit/30 hover:border-amber-audit/60' },
@@ -94,6 +95,7 @@ export default function Dashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
+      <OnboardingModal />
 
       {/* Hero */}
       <div className="card border-navy-600 bg-gradient-to-br from-navy-800 to-navy-900">

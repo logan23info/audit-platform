@@ -7,7 +7,7 @@ import { User,
   RefreshCw, Building2, UserCheck, Lock, Cpu, Sparkles, Database,
   AlertOctagon, ShieldCheck, Zap, Star, GitMerge, FileCheck, List,
   CheckSquare, FolderOpen, BarChart2, Activity, CheckCircle, Globe,
-  X, LogOut, HelpCircle, CloudUpload
+  X, LogOut, HelpCircle, CloudUpload, Truck
 } from 'lucide-react'
 import { navSections } from '../navConfig'
 import { useAuth } from '../context/AuthContext'
@@ -19,7 +19,7 @@ const iconMap = {
   BookOpen, BookMarked, Map, Crown, Target, Wrench, Settings, TrendingUp,
   RefreshCw, Building2, UserCheck, Lock, Cpu, Sparkles, Database,
   AlertOctagon, ShieldCheck, Zap, Star, GitMerge, FileCheck, List,
-  HelpCircle, CloudUpload
+  HelpCircle, CloudUpload, Truck
 }
 
 const sectionColors = {

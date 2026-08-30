@@ -56,6 +56,9 @@ const ISMSScopeRegister = lazy_(() => import('./pages/isms/ScopeRegister'))
 const ISMSRCM = lazy_(() => import('./pages/isms/RCM'))
 const ISMSSupplierAudit = lazy_(() => import('./pages/isms/SupplierAudit'))
 const ISMSGapAnalysis = lazy_(() => import('./pages/isms/GapAnalysis'))
+const ISMSManagementSystem = lazy_(() => import('./pages/isms/ManagementSystem'))
+const ISMSSurveillanceAudit = lazy_(() => import('./pages/fieldwork/SurveillanceAudit'))
+const ProgrammesOverview = lazy_(() => import('./pages/ProgrammesOverview'))
 const ISMSAudit = lazy_(() => import('./pages/fieldwork/ISMSAudit'))
 const Organizational = lazy_(() => import('./pages/iso27002/Organizational'))
 const People = lazy_(() => import('./pages/iso27002/People'))
@@ -139,6 +142,9 @@ function AppShell() {
               <Route path="/isms/rcm" element={<ISMSRCM />} />
               <Route path="/isms/suppliers" element={<ISMSSupplierAudit />} />
               <Route path="/isms/gap-analysis" element={<ISMSGapAnalysis />} />
+              <Route path="/isms/management-system" element={<ISMSManagementSystem />} />
+              <Route path="/fieldwork/surveillance-audit" element={<ISMSSurveillanceAudit />} />
+              <Route path="/programmes" element={<ProgrammesOverview />} />
               <Route path="/fieldwork/isms-audit" element={<ISMSAudit />} />
               <Route path="/iso27002" element={<Navigate to="/iso27002/organizational" replace />} />
               <Route path="/iso27002/organizational" element={<Organizational />} />

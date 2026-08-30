@@ -467,6 +467,54 @@ export async function deleteSupplierAudit(id) {
   if (error) throw error
 }
 
+// ─── ISMS — Clause 4-10 Management System registers (Sprint 16) ────
+export async function getMSRecords(programmeId) {
+  const { data, error } = await supabase.from('isms_ms_records').select('*').eq('programme_id', programmeId).order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function createMSRecord(row) {
+  const { data, error } = await supabase.from('isms_ms_records').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function updateMSRecord(id, updates) {
+  const { data, error } = await supabase.from('isms_ms_records').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteMSRecord(id) {
+  const { error } = await supabase.from('isms_ms_records').delete().eq('id', id)
+  if (error) throw error
+}
+
+// ─── ISMS — Surveillance Audit register (Sprint 16b) ────────────
+export async function getSurveillanceAudits(programmeId) {
+  const { data, error } = await supabase.from('isms_surveillance_audits').select('*').eq('programme_id', programmeId).order('created_at')
+  if (error) throw error
+  return data
+}
+
+export async function createSurveillanceAudit(row) {
+  const { data, error } = await supabase.from('isms_surveillance_audits').insert(row).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function updateSurveillanceAudit(id, updates) {
+  const { data, error } = await supabase.from('isms_surveillance_audits').update({ ...updates, updated_at: new Date().toISOString() }).eq('id', id).select().single()
+  if (error) throw error
+  return data
+}
+
+export async function deleteSurveillanceAudit(id) {
+  const { error } = await supabase.from('isms_surveillance_audits').delete().eq('id', id)
+  if (error) throw error
+}
+
 // ─── ISMS — Control ↔ Site cross-reference (Cl. 4.3) ────────────
 export async function getControlSites(programmeId) {
   const { data, error } = await supabase.from('isms_control_sites').select('*').eq('programme_id', programmeId)

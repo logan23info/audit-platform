@@ -7,6 +7,7 @@ export const navSections = [
       { id: 'faq', label: 'FAQ', path: '/faq', icon: 'HelpCircle' },
       { id: 'profile', label: 'My Profile', path: '/profile', icon: 'User' },
       { id: 'team', label: 'Team Members ⭐ New', path: '/team', icon: 'Users' },
+      { id: 'programmes', label: 'All Programmes ⭐ New', path: '/programmes', icon: 'FolderOpen' },
     ]
   },
   {
@@ -51,6 +52,7 @@ export const navSections = [
       { id: 'isms-rcm', label: 'Risk Control Matrix ⭐ New', path: '/isms/rcm', icon: 'Table' },
       { id: 'isms-suppliers', label: 'Supplier Audit ⭐ New', path: '/isms/suppliers', icon: 'Truck' },
       { id: 'isms-gap-analysis', label: 'Gap Analysis ⭐ New', path: '/isms/gap-analysis', icon: 'Target' },
+      { id: 'isms-management-system', label: 'Management System (Cl. 4-10) ⭐ New', path: '/isms/management-system', icon: 'Layers' },
       { id: 'isms-scope', label: 'Multi-site Scope Register', path: '/isms/scope', icon: 'Map' },
       { id: 'isms-history', label: 'Control History', path: '/isms/history', icon: 'History' },
     ]
@@ -83,6 +85,7 @@ export const navSections = [
       { id: 'workpapers', label: 'Workpaper Index', path: '/fieldwork/workpapers', icon: 'FolderOpen' },
       { id: 'library', label: 'Workpaper Library ☁️', path: '/fieldwork/library', icon: 'CloudUpload' },
       { id: 'isms-audit', label: 'ISMS Certification Audit', path: '/fieldwork/isms-audit', icon: 'ShieldCheck' },
+      { id: 'surveillance-audit', label: 'Surveillance Audit Schedule ⭐ New', path: '/fieldwork/surveillance-audit', icon: 'CalendarClock' },
     ]
   },
   {

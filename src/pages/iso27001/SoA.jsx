@@ -38,6 +38,11 @@ export default function SoA() {
   // Sprint 7: snapshot of last-persisted values per control, used to diff at save-time (not per-keystroke)
   // so debounced text fields (justification/exclusion_reason) log one history row per settled edit, not per keystroke.
   const lastSavedRef = useRef({})
+  // Sprint 12 fix: separate from lastSavedRef (last *persisted* value, used for
+  // history diffing) — this mirrors the live edit state so persist() always
+  // writes the CURRENT row, never a stale closure captured before a later
+  // immediate field edit. Same bug class found and fixed in RCM.jsx/Implement.jsx.
+  const liveDataRef = useRef({})
   const [filterTheme, setFilterTheme] = useState('All')
   const [filterApplicable, setFilterApplicable] = useState('All')
   const [filterNew, setFilterNew] = useState(false)
@@ -52,6 +57,7 @@ export default function SoA() {
       rows.forEach(r => { byRef[r.control_id] = { applicable: r.applicable, justification: r.justification || '', exclusion_reason: r.exclusion_reason || '', status: r.status, notes: r.notes || '' } })
       setSoaData(byRef)
       lastSavedRef.current = byRef
+      liveDataRef.current = byRef
       const ev = {}
       implRows.forEach(r => { if (r.evidence_url) ev[r.control_id] = true })
       setEvidenceMap(ev)
@@ -66,8 +72,10 @@ export default function SoA() {
 
   useEffect(() => { load() }, [load])
 
-  const persist = (ref, row, reason = null) => {
+  const persist = (ref, reason = null) => {
     if (!activeProgramme) return
+    const row = liveDataRef.current[ref]
+    if (!row) return
     setSavingRef(ref)
     const prev = lastSavedRef.current[ref] || emptyRow()
     upsertSoAControl({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...row })
@@ -104,11 +112,12 @@ export default function SoA() {
     const row = { ...soaData[ref], [field]: value }
     if (field === 'applicable' && value === 'No') row.status = 'Not Applicable'
     if (field === 'applicable' && value === 'Yes' && row.status === 'Not Applicable') row.status = 'Planned'
+    liveDataRef.current = { ...liveDataRef.current, [ref]: row }
     setSoaData(p => ({ ...p, [ref]: row }))
     if (TEXT_FIELDS.includes(field)) {
-      debouncedSave(ref, () => persist(ref, row, reason))
+      debouncedSave(ref, () => persist(ref, reason))
     } else {
-      persist(ref, row, reason)
+      persist(ref, reason)
     }
     // History is now logged inside persist() itself, diffed against the last-persisted
     // snapshot — see lastSavedRef above. This covers debounced text fields correctly.

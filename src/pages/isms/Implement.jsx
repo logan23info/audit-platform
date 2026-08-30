@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { FileDown, Loader2, ExternalLink, Paperclip } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import AIPanel from '../../components/AIPanel'
@@ -44,6 +44,11 @@ export default function ISMSImplement() {
   const { toast } = useToast()
   const [soaMap, setSoaMap] = useState({})
   const [implData, setImplData] = useState({})
+  // Sprint 12 fix: persist() reads from this ref at fire-time, not a closed-over
+  // snapshot — prevents a stale debounced write from overwriting a more recent
+  // immediate write to a different field on the same row (found via evidence
+  // upload + status testing during Chrome-extension testing of RCM).
+  const implDataRef = useRef({})
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
   const [uploadingRef, setUploadingRef] = useState(null)
@@ -60,14 +65,17 @@ export default function ISMSImplement() {
       implRows.forEach(r => { impl[r.control_id] = { status: r.status, policy_ref: r.policy_ref || '', evidence_url: r.evidence_url || '', evidence_file_path: r.evidence_file_path || '', owner: r.owner || '', target_date: r.target_date || '', verified: r.verified, notes: r.notes || '' } })
       setSoaMap(soa)
       setImplData(impl)
+      implDataRef.current = impl
     } catch (e) { toast('Failed to load: ' + e.message, 'error') }
     setLoading(false)
   }, [activeProgramme])
 
   useEffect(() => { load() }, [load])
 
-  const persist = (ref, row) => {
+  const persist = (ref) => {
     if (!activeProgramme) return
+    const row = implDataRef.current[ref]
+    if (!row) return
     setSavingRef(ref)
     upsertISMSControl({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, ...row, target_date: row.target_date || null })
       .catch(e => toast('Save failed — ' + ref + ': ' + e.message, 'error'))
@@ -75,13 +83,14 @@ export default function ISMSImplement() {
   }
 
   const update = (ref, field, value) => {
-    const oldValue = implData[ref]?.[field]
-    const row = { ...implData[ref], [field]: value }
+    const oldValue = implDataRef.current[ref]?.[field]
+    const row = { ...implDataRef.current[ref], [field]: value }
+    implDataRef.current = { ...implDataRef.current, [ref]: row }
     setImplData(p => ({ ...p, [ref]: row }))
     if (TEXT_FIELDS.includes(field)) {
-      debouncedSave(ref, () => persist(ref, row))
+      debouncedSave(ref, () => persist(ref))
     } else {
-      persist(ref, row)
+      persist(ref)
     }
     if (field === 'status' && oldValue !== value && activeProgramme) {
       logControlHistory({ programme_id: activeProgramme.id, user_id: user?.id, control_id: ref, source: 'implementation', field, old_value: oldValue ?? null, new_value: value, reason: null }).catch(() => {})

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react'
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react'
 import { FileDown, Loader2, ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { exportToCSV } from '../../utils/exportCSV'
@@ -45,6 +45,10 @@ export default function RCM() {
   const { toast } = useToast()
   const [soaMap, setSoaMap] = useState({})
   const [implData, setImplData] = useState({})
+  // Sprint 12 fix: persist() reads from this ref, never a closed-over snapshot —
+  // a debounced write firing after a later immediate write must save current
+  // state, not stale state from before the immediate edit. See update() below.
+  const implDataRef = useRef({})
   const [riskLinks, setRiskLinks] = useState({}) // control_id -> [risk_ref,...]
   const [loading, setLoading] = useState(false)
   const [savingRef, setSavingRef] = useState(null)
@@ -78,15 +82,20 @@ export default function RCM() {
           test_conclusion: r.test_conclusion || '',
         }
       })
-      setSoaMap(soa); setImplData(impl); setRiskLinks(rl)
+      setSoaMap(soa); setImplData(impl); implDataRef.current = impl; setRiskLinks(rl)
     } catch (e) { toast('Failed to load RCM: ' + e.message, 'error') }
     setLoading(false)
   }, [activeProgramme])
 
   useEffect(() => { load() }, [load])
 
-  const persist = (ref, row) => {
+  // Always reads implDataRef.current at the moment it actually fires — never a
+  // snapshot captured earlier. This is what prevents a stale debounced write
+  // from overwriting a more recent edit to a different field on the same row.
+  const persist = (ref) => {
     if (!activeProgramme) return
+    const row = implDataRef.current[ref]
+    if (!row) return
     setSavingRef(ref)
     upsertISMSControl({
       programme_id: activeProgramme.id, user_id: user?.id, control_id: ref,
@@ -99,10 +108,11 @@ export default function RCM() {
   }
 
   const update = (ref, field, value) => {
-    const row = { ...implData[ref], [field]: value }
+    const row = { ...implDataRef.current[ref], [field]: value }
+    implDataRef.current = { ...implDataRef.current, [ref]: row }
     setImplData(p => ({ ...p, [ref]: row }))
-    if (TEXT_FIELDS.includes(field)) debouncedSave(ref, () => persist(ref, row))
-    else persist(ref, row)
+    if (TEXT_FIELDS.includes(field)) debouncedSave(ref, () => persist(ref))
+    else persist(ref)
   }
 
   const toggleExpand = (ref) => {

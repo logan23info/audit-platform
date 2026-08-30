@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import PageHeader from '../components/PageHeader'
 
 const faqs = [
@@ -173,23 +173,19 @@ const faqs = [
     items: [
       {
         q: 'What environment variables are required?',
-        a: 'Vercel env vars (build-time, browser-safe): VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Supabase → Settings → API). After adding/changing these, commit any change to GitHub to trigger a fresh build — the Redeploy button reuses old cache. Supabase secrets (server-side only, for the ai-generate edge function, take effect immediately, no rebuild): GROQ_API_KEY (console.groq.com — free), with optional fallbacks OPENAI_API_KEY, ANTHROPIC_API_KEY.'
+        a: 'Build-time, browser-safe: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Supabase → Settings → API). Server-side secrets (for the ai-generate edge function, take effect immediately, no rebuild): GROQ_API_KEY (console.groq.com — free), with optional fallbacks OPENAI_API_KEY, ANTHROPIC_API_KEY.'
       },
       {
         q: 'What tech stack is AuditIQ built on?',
-        a: 'React 18 + Vite with lazy-loaded code splitting (fast initial load), Tailwind CSS v3, React Router v6, Supabase (auth + PostgreSQL + file storage), Groq API — openai/gpt-oss-20b (free AI), Vercel (deployment), GitHub (source control). Dark/light theming via ThemeContext + CSS variables.'
+        a: 'React 18 + Vite with lazy-loaded code splitting (fast initial load), Tailwind CSS v3, React Router v6, Supabase (auth + PostgreSQL + file storage), Groq API — openai/gpt-oss-20b (free AI). Dark/light theming via ThemeContext + CSS variables.'
       },
       {
         q: 'Why do I get a 404 when refreshing the page?',
-        a: 'AuditIQ is a React SPA — the vercel.json file in the repo root handles this with a rewrite rule pointing all routes to index.html. This is already in the repo. If you see 404s, check that vercel.json exists in your GitHub repo root.'
+        a: 'AuditIQ is a React SPA — a vercel.json rewrite rule points all routes to index.html so this is already handled. If you see 404s, contact your administrator.'
       },
       {
-        q: 'How do I deploy updates using VS Code?',
-        a: 'Run bash sync-from-claude.sh in the VS Code terminal, or press Ctrl+Shift+B → "Sync & Deploy to Vercel". This runs npm install → build → git add → commit → push. Vercel deploys automatically in ~30 seconds. The Ctrl+K shortcut in the platform also works for quick module navigation during development.'
-      },
-      {
-        q: 'How do I delete stale files from the GitHub repo?',
-        a: 'Fastest method: open VS Code terminal and run git rm <filepath> for each file, then git commit -m "cleanup" and git push. Alternatively press . (period) on the GitHub repo page to open GitHub.dev (browser VS Code), right-click files → Delete, then commit and push.'
+        q: 'Who do I contact for setup or deployment support?',
+        a: 'Reach out to your AuditIQ administrator for environment configuration, deployment, or access issues.'
       },
     ]
   },
@@ -247,11 +243,7 @@ export default function FAQ() {
 
       <div className="card mt-8 text-center">
         <div className="text-sm font-semibold text-white mb-2">Still have questions?</div>
-        <div className="text-xs text-steel-400 mb-4">Check the GitHub repo or raise an issue.</div>
-        <div className="flex flex-wrap gap-3 justify-center">
-          <a href="https://github.com/logan23info/audit-platform#readme" target="_blank" rel="noreferrer" className="btn-secondary text-xs"><ExternalLink size={12} /> GitHub README</a>
-          <a href="https://github.com/logan23info/audit-platform/issues" target="_blank" rel="noreferrer" className="btn-secondary text-xs"><ExternalLink size={12} /> Raise an Issue</a>
-        </div>
+        <div className="text-xs text-steel-400 mb-4">Contact your AuditIQ administrator.</div>
       </div>
     </div>
   )

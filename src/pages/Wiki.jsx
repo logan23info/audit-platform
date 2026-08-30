@@ -82,8 +82,6 @@ export default function Wiki() {
 
       <div className="flex flex-wrap gap-2 mb-6">
         {[
-          { label: 'GitHub README', href: 'https://github.com/logan23info/audit-platform#readme' },
-          { label: 'GitHub Repo', href: 'https://github.com/logan23info/audit-platform' },
           { label: 'FAQ', path: '/faq' },
           { label: 'Live Platform', href: 'https://auditiq-it.vercel.app' },
         ].map(l => l.href ? (
@@ -210,7 +208,7 @@ export default function Wiki() {
             ))}
           </div>
           <div className="mt-3 bg-blue-900/20 border border-blue-800/50 rounded p-2 text-xs text-blue-200/80 flex gap-1.5">
-            <AlertCircle size={11} className="flex-shrink-0 mt-0.5" />After adding env vars — commit a change to GitHub for a fresh Vercel build.
+            <AlertCircle size={11} className="flex-shrink-0 mt-0.5" />After adding env vars, a fresh deployment is needed for the change to take effect.
           </div>
         </div>
       </div>
@@ -220,7 +218,6 @@ export default function Wiki() {
         <div className="text-xs text-steel-500 mb-4">ISO 19011 · 27001 · 27002 · 27005 · Powered by Groq AI (Free)</div>
         <div className="flex flex-wrap gap-2 justify-center">
           <button onClick={() => navigate('/faq')} className="btn-secondary text-xs">FAQ</button>
-          <a href="https://github.com/logan23info/audit-platform#readme" target="_blank" rel="noreferrer" className="btn-secondary text-xs"><ExternalLink size={11} /> GitHub README</a>
         </div>
       </div>
     </div>

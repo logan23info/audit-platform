@@ -191,7 +191,7 @@ export default function Wiki() {
             ))}
           </div>
           <div className="bg-amber-900/20 border border-amber-800/50 rounded p-2 text-xs text-amber-200/80 flex gap-1.5">
-            <AlertCircle size={11} className="flex-shrink-0 mt-0.5" />Requires VITE_GROQ_API_KEY in Vercel — free at console.groq.com
+            <AlertCircle size={11} className="flex-shrink-0 mt-0.5" />Requires GROQ_API_KEY as a Supabase secret on the ai-generate edge function — free at console.groq.com. Kept server-side, never in Vercel/browser.
           </div>
         </div>
 
@@ -199,7 +199,7 @@ export default function Wiki() {
           <div className="flex items-center gap-2 mb-3"><Key size={15} className="text-red-400" /><h2 className="section-title mb-0">Required Environment Variables</h2></div>
           <div className="space-y-2">
             {[
-              { var: 'VITE_GROQ_API_KEY', source: 'console.groq.com → API Keys (free)', req: 'AI Generate buttons' },
+              { var: 'GROQ_API_KEY (Supabase secret, not Vercel)', source: 'console.groq.com → API Keys (free)', req: 'AI Generate buttons — via ai-generate edge function' },
               { var: 'VITE_SUPABASE_URL', source: 'Supabase → Settings → API → Project URL', req: 'All live pages + login' },
               { var: 'VITE_SUPABASE_ANON_KEY', source: 'Supabase → Settings → API → Publishable', req: 'All live pages + login' },
             ].map(r => (

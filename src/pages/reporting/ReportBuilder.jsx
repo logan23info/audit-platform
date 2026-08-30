@@ -2,20 +2,19 @@ import { useState, useEffect, useCallback } from 'react'
 import { FileText, Send, Loader2, Download, Copy, CheckCircle2, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react'
 import PageHeader from '../../components/PageHeader'
 import { useProgramme } from '../../context/ProgrammeContext'
-import { getFindings, getRisks, getSoA, getISMSImplementation } from '../../lib/supabase'
+import { getFindings, getRisks, getSoA, getISMSImplementation, supabase } from '../../lib/supabase'
 import { controls as annexAControls } from '../../data/iso27002_controls'
 
+// Sprint 14: calls the ai-generate edge function instead of Groq directly —
+// keeps the API key server-side only. See supabase/functions/ai-generate/index.ts.
 async function callAI(systemPrompt, userMessage) {
-  const groqKey = import.meta.env.VITE_GROQ_API_KEY
-  if (!groqKey) throw new Error('NO_KEY')
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-    body: JSON.stringify({ model: 'openai/gpt-oss-20b', max_tokens: 2000, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }] })
+  const { data, error } = await supabase.functions.invoke('ai-generate', {
+    body: { systemPrompt, userMessage },
   })
-  if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `Error ${response.status}`) }
-  const data = await response.json()
-  return data.choices?.[0]?.message?.content || ''
+  if (error) throw new Error(error.message || 'AI request failed')
+  if (data?.error === 'NO_KEY') throw new Error('NO_KEY')
+  if (data?.error) throw new Error(data.error)
+  return data?.text || ''
 }
 
 const sections = [
@@ -147,7 +146,7 @@ Generate a complete, professional ${selectedSection?.label} section. Use the act
       const text = await callAI(systemPrompt, userMessage)
       setOutput(text)
     } catch (e) {
-      if (e.message === 'NO_KEY') setError('No AI key configured. Add VITE_GROQ_API_KEY to Vercel → Environment Variables.')
+      if (e.message === 'NO_KEY') setError('No AI key configured. Set GROQ_API_KEY as a Supabase secret on the ai-generate edge function.')
       else setError(`Error: ${e.message}`)
     }
     setGenerating(false)

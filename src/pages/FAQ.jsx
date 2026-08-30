@@ -39,7 +39,7 @@ const faqs = [
     items: [
       {
         q: 'Which AI provider does AuditIQ use?',
-        a: 'AuditIQ uses Groq as the primary AI provider — completely free, no credit card needed. The active provider is shown as a badge ("Groq · GPT-OSS 20B") next to "AI-Powered" on every panel. Priority fallback order: Groq (VITE_GROQ_API_KEY) → OpenAI (VITE_OPENAI_API_KEY) → Anthropic (VITE_ANTHROPIC_API_KEY).'
+        a: 'AuditIQ uses Groq as the primary AI provider — completely free, no credit card needed. Calls go through the ai-generate Supabase edge function, which keeps the API key server-side rather than in the browser. The active provider is shown as a badge next to "AI-Powered" once a generation succeeds. Priority fallback order (set as Supabase secrets, not Vercel env vars): Groq (GROQ_API_KEY) → OpenAI (OPENAI_API_KEY) → Anthropic (ANTHROPIC_API_KEY).'
       },
       {
         q: 'How does AI artifact generation work?',
@@ -51,7 +51,7 @@ const faqs = [
       },
       {
         q: 'The Generate button shows an error — what do I do?',
-        a: 'Most common causes: (1) No VITE_GROQ_API_KEY in Vercel — get a free key from console.groq.com, add to Vercel → Environment Variables, then commit any change to GitHub to trigger a fresh build. (2) Groq rate limit hit — wait 30 seconds and try again. The error message will tell you exactly what happened.'
+        a: 'Most common causes: (1) No GROQ_API_KEY set as a Supabase secret on the ai-generate edge function — get a free key from console.groq.com and run `supabase secrets set GROQ_API_KEY=...`; takes effect immediately, no rebuild needed. (2) The key exists but is expired/revoked on the Groq side — check console.groq.com → API Keys. (3) Groq rate limit hit — wait 30 seconds and try again. The error message will tell you exactly what happened.'
       },
       {
         q: 'How specific should my inputs be?',
@@ -173,7 +173,7 @@ const faqs = [
     items: [
       {
         q: 'What environment variables are required?',
-        a: 'Required: VITE_GROQ_API_KEY (console.groq.com — free), VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Supabase → Settings → API). Optional fallbacks: VITE_OPENAI_API_KEY, VITE_ANTHROPIC_API_KEY. After adding any env var in Vercel, commit any change to GitHub to trigger a fresh build — the Redeploy button reuses old cache.'
+        a: 'Vercel env vars (build-time, browser-safe): VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY (Supabase → Settings → API). After adding/changing these, commit any change to GitHub to trigger a fresh build — the Redeploy button reuses old cache. Supabase secrets (server-side only, for the ai-generate edge function, take effect immediately, no rebuild): GROQ_API_KEY (console.groq.com — free), with optional fallbacks OPENAI_API_KEY, ANTHROPIC_API_KEY.'
       },
       {
         q: 'What tech stack is AuditIQ built on?',

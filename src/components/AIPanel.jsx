@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Sparkles, Send, Copy, Download, Loader2, ChevronDown, ChevronUp, Save, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useProgramme } from '../context/ProgrammeContext'
-import { createWorkpaper } from '../lib/supabase'
+import { createWorkpaper, supabase } from '../lib/supabase'
 
 // Improvement 4 — Markdown rendering
 function MarkdownOutput({ text }) {
@@ -27,42 +27,17 @@ function MarkdownOutput({ text }) {
   return <div className="space-y-0.5">{elements}</div>
 }
 
+// Sprint 14: calls the ai-generate edge function instead of Groq/OpenAI/
+// Anthropic directly — keeps the API key server-side only, never in the
+// browser bundle. See supabase/functions/ai-generate/index.ts.
 async function callAI(systemPrompt, userMessage) {
-  const groqKey = import.meta.env.VITE_GROQ_API_KEY
-  const openaiKey = import.meta.env.VITE_OPENAI_API_KEY
-  const anthropicKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-
-  if (groqKey) {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${groqKey}` },
-      body: JSON.stringify({ model: 'openai/gpt-oss-20b', max_tokens: 1500, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }] })
-    })
-    if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `Groq error ${response.status}`) }
-    const data = await response.json()
-    return data.choices?.[0]?.message?.content || ''
-  }
-  if (openaiKey) {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${openaiKey}` },
-      body: JSON.stringify({ model: 'gpt-4o-mini', max_tokens: 1500, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userMessage }] })
-    })
-    if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `OpenAI error ${response.status}`) }
-    const data = await response.json()
-    return data.choices?.[0]?.message?.content || ''
-  }
-  if (anthropicKey) {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': anthropicKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-calls': 'true' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, system: systemPrompt, messages: [{ role: 'user', content: userMessage }] })
-    })
-    if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err?.error?.message || `Anthropic error ${response.status}`) }
-    const data = await response.json()
-    return data.content?.map(b => b.text || '').join('\n') || ''
-  }
-  throw new Error('NO_KEY')
+  const { data, error } = await supabase.functions.invoke('ai-generate', {
+    body: { systemPrompt, userMessage },
+  })
+  if (error) throw new Error(error.message || 'AI request failed')
+  if (data?.error === 'NO_KEY') throw new Error('NO_KEY')
+  if (data?.error) throw new Error(data.error)
+  return { text: data?.text || '', provider: data?.provider }
 }
 
 function detectContext() {
@@ -109,6 +84,7 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
   const [saveError, setSaveError] = useState('')
   const [collapsed, setCollapsed] = useState(false)
   const [renderMode, setRenderMode] = useState('formatted') // formatted | raw
+  const [provider, setProvider] = useState(null) // set from the edge function's response on first successful call
 
   const buildUserMessage = () => {
     let msg = ''
@@ -119,11 +95,14 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
 
   const generate = async () => {
     setLoading(true); setError(''); setOutput(''); setSaved(null); setSaveError('')
-    try { setOutput(await callAI(systemPrompt, buildUserMessage())) }
-    catch (e) {
-      if (e.message === 'NO_KEY') setError('No AI key configured. Add VITE_GROQ_API_KEY to Vercel → Settings → Environment Variables.')
+    try {
+      const result = await callAI(systemPrompt, buildUserMessage())
+      setOutput(result.text)
+      if (result.provider) setProvider(result.provider)
+    } catch (e) {
+      if (e.message === 'NO_KEY') setError('No AI key configured. Set GROQ_API_KEY (or OPENAI_API_KEY / ANTHROPIC_API_KEY) as a Supabase secret on the ai-generate edge function.')
       else if (e.message.includes('429') || e.message.includes('quota')) setError('Rate limit reached. Wait 30 seconds and try again.')
-      else if (e.message.includes('401') || e.message.includes('403')) setError('Invalid API key. Check your key in Vercel → Settings → Environment Variables.')
+      else if (e.message.includes('401') || e.message.includes('403')) setError('Invalid API key. Check the key stored as a Supabase secret for the ai-generate edge function.')
       else setError(`Error: ${e.message}`)
     }
     setLoading(false)
@@ -150,7 +129,11 @@ export default function AIPanel({ title, systemPrompt, placeholder, contextField
     const a = document.createElement('a'); a.href = url; a.download = `${title.replace(/\s+/g, '_')}.txt`; a.click(); URL.revokeObjectURL(url)
   }
 
-  const activeProvider = import.meta.env.VITE_GROQ_API_KEY ? 'Groq · GPT-OSS 20B' : import.meta.env.VITE_OPENAI_API_KEY ? 'GPT-4o mini' : import.meta.env.VITE_ANTHROPIC_API_KEY ? 'Claude' : 'No AI key'
+  // Provider is no longer known client-side (key lives server-side in the
+  // edge function) — shows generically until the first successful call
+  // reports which provider actually served it.
+  const PROVIDER_LABELS = { groq: 'Groq · GPT-OSS 20B', openai: 'GPT-4o mini', anthropic: 'Claude' }
+  const activeProvider = provider ? PROVIDER_LABELS[provider] || provider : 'AI Assistant'
 
   return (
     <div className="ai-panel mt-6">

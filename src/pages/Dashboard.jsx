@@ -231,7 +231,7 @@ export default function Dashboard() {
           <h2 className="section-title mb-3">Programme Health</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: 'Findings Closure', value: stats.total > 0 ? Math.round(((stats.total - stats.openFindings) / stats.total) * 100) : 100, color: 'bg-emerald-500', target: 80 },
+              { label: 'Findings Closure', value: stats.findings > 0 ? Math.round(((stats.findings - stats.openFindings) / stats.findings) * 100) : 100, color: 'bg-emerald-500', target: 80 },
               { label: 'PBC Evidence', value: stats.pbcOutstanding > 0 ? Math.round(((stats.workpapers - stats.pbcOutstanding) / stats.workpapers) * 100) : 100, color: 'bg-blue-500', target: 85 },
               { label: 'Risk Coverage', value: stats.risks > 0 ? Math.round(((stats.risks - stats.risksAboveAppetite) / stats.risks) * 100) : 100, color: 'bg-purple-500', target: 90 },
             ].map(h => (

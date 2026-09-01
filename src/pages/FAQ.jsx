@@ -17,7 +17,7 @@ const faqs = [
       },
       {
         q: 'Do I need to create an account?',
-        a: 'Yes — AuditIQ requires a free account. Go to auditiq-it.vercel.app and click "Create Account". Register with your email and password (minimum 6 characters). All your data is stored privately in Supabase and only accessible to your account.'
+        a: 'Yes — AuditIQ requires a free account. Go to auditiq-it.vercel.app and click "Create Account". Register with your email and password (minimum 10 characters). All your data is stored privately in Supabase and only accessible to your account.'
       },
       {
         q: 'What is an Audit Programme and how do I create one?',

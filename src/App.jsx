@@ -1,95 +1,194 @@
+import { useState, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { Suspense, lazy } from 'react'
-import { ToastProvider }     from './context/ToastContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import { ThemeProvider }     from './context/ThemeContext'
 import { ProgrammeProvider } from './context/ProgrammeContext'
-import AppShell              from './components/AppShell'
-import Spinner               from './components/Spinner'
+import { ThemeProvider } from './context/ThemeContext'
+import { ToastProvider } from './components/Toast'
+import Sidebar from './components/Sidebar'
+import Header from './components/Header'
+import Breadcrumb from './components/Breadcrumb'
+import AuthPage from './pages/AuthPage'
 
-const lazy_ = (fn) => lazy(fn)
-const AuthPage       = lazy_(() => import('./pages/AuthPage'))
-const Dashboard      = lazy_(() => import('./pages/Dashboard'))
-const Programmes     = lazy_(() => import('./pages/Programmes'))
-const Settings       = lazy_(() => import('./pages/Settings'))
-const Team           = lazy_(() => import('./pages/Team'))
-const Scoping        = lazy_(() => import('./pages/plan/Scoping'))
-const RCM            = lazy_(() => import('./pages/plan/RCM'))
-const WorkpaperSetup = lazy_(() => import('./pages/plan/WorkpaperSetup'))
-const MultiEntity    = lazy_(() => import('./pages/plan/MultiEntity'))
-const IPEValidation  = lazy_(() => import('./pages/execute/IPEValidation'))
-const SampleTesting  = lazy_(() => import('./pages/execute/SampleTesting'))
-const JETesting      = lazy_(() => import('./pages/execute/JETesting'))
-const Findings       = lazy_(() => import('./pages/execute/Findings'))
-const DeficiencyLog  = lazy_(() => import('./pages/execute/DeficiencyLog'))
-const SoDMatrix      = lazy_(() => import('./pages/execute/SoDMatrix'))
-const Remediation    = lazy_(() => import('./pages/manage/Remediation'))
-const VendorSOC1     = lazy_(() => import('./pages/manage/VendorSOC1'))
-const Reliance       = lazy_(() => import('./pages/manage/Reliance'))
-const Assertions     = lazy_(() => import('./pages/manage/Assertions'))
-const Standards      = lazy_(() => import('./pages/manage/Standards'))
-const Reports        = lazy_(() => import('./pages/manage/Reports'))
-const Frameworks     = lazy_(() => import('./pages/reference/Frameworks'))
-const CloudITGC      = lazy_(() => import('./pages/reference/CloudITGC'))
-const ERPGuides      = lazy_(() => import('./pages/reference/ERPGuides'))
-const SectorControls = lazy_(() => import('./pages/reference/SectorControls'))
-const InterviewPrep  = lazy_(() => import('./pages/reference/InterviewPrep'))
+// Item 6 — Code splitting with lazy loading
+const lazy_ = (fn) => {
+  const C = lazy(fn)
+  return (props) => (
+    <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-amber-audit border-t-transparent rounded-full animate-spin" /></div>}>
+      <C {...props} />
+    </Suspense>
+  )
+}
 
-function Protected() {
+// Eager load only critical pages
+import Dashboard from './pages/Dashboard'
+import ComingSoon from './pages/ComingSoon'
+
+// Lazy load everything else — Item 6: Code splitting
+const FAQ = lazy_(() => import('./pages/FAQ'))
+const Wiki = lazy_(() => import('./pages/Wiki'))
+const Profile = lazy_(() => import('./pages/Profile'))
+const TeamMembers = lazy_(() => import('./pages/TeamMembers'))
+const ISO27000 = lazy_(() => import('./pages/iso27000/ISO27000'))
+const Clause4 = lazy_(() => import('./pages/iso19011/Clause4'))
+const Clause5 = lazy_(() => import('./pages/iso19011/Clause5'))
+const Clause6Initiation = lazy_(() => import('./pages/iso19011/Clause6Initiation'))
+const Clause6Preparation = lazy_(() => import('./pages/iso19011/Clause6Preparation'))
+const Clause65Reporting = lazy_(() => import('./pages/iso19011/Clause65Reporting'))
+const Clause7 = lazy_(() => import('./pages/iso19011/Clause7'))
+const Findings = lazy_(() => import('./pages/iso19011/Findings'))
+const Meetings = lazy_(() => import('./pages/iso19011/Meetings'))
+const TOD = lazy_(() => import('./pages/iso19011/TOD'))
+const TOI = lazy_(() => import('./pages/iso19011/TOI'))
+const TOE = lazy_(() => import('./pages/iso19011/TOE'))
+const AnnexA = lazy_(() => import('./pages/iso19011/AnnexA'))
+const ISO27001Clause4 = lazy_(() => import('./pages/iso27001/Clause4'))
+const ISO27001Clause5 = lazy_(() => import('./pages/iso27001/Clause5'))
+const ISO27001Clause6 = lazy_(() => import('./pages/iso27001/Clause6'))
+const ISO27001Clause7 = lazy_(() => import('./pages/iso27001/Clause7'))
+const ISO27001SoA = lazy_(() => import('./pages/iso27001/SoA'))
+const ISO27001Clause8 = lazy_(() => import('./pages/iso27001/Clause8'))
+const ISO27001Clause9 = lazy_(() => import('./pages/iso27001/Clause9'))
+const ISO27001Clause10 = lazy_(() => import('./pages/iso27001/Clause10'))
+const ISMSLanding = lazy_(() => import('./pages/isms/Landing'))
+const ISMSImplement = lazy_(() => import('./pages/isms/Implement'))
+const ISMSHistory = lazy_(() => import('./pages/isms/History'))
+const ISMSScopeRegister = lazy_(() => import('./pages/isms/ScopeRegister'))
+const ISMSRCM = lazy_(() => import('./pages/isms/RCM'))
+const ISMSSupplierAudit = lazy_(() => import('./pages/isms/SupplierAudit'))
+const ISMSGapAnalysis = lazy_(() => import('./pages/isms/GapAnalysis'))
+const ISMSManagementSystem = lazy_(() => import('./pages/isms/ManagementSystem'))
+const ISMSSurveillanceAudit = lazy_(() => import('./pages/fieldwork/SurveillanceAudit'))
+const ProgrammesOverview = lazy_(() => import('./pages/ProgrammesOverview'))
+const ISMSAudit = lazy_(() => import('./pages/fieldwork/ISMSAudit'))
+const Organizational = lazy_(() => import('./pages/iso27002/Organizational'))
+const People = lazy_(() => import('./pages/iso27002/People'))
+const Physical = lazy_(() => import('./pages/iso27002/Physical'))
+const Technological = lazy_(() => import('./pages/iso27002/Technological'))
+const NetNew = lazy_(() => import('./pages/iso27002/NetNew'))
+const Assets = lazy_(() => import('./pages/iso27005/Assets'))
+const RiskRegister = lazy_(() => import('./pages/iso27005/RiskRegister'))
+const RTP = lazy_(() => import('./pages/iso27005/RTP'))
+const Scenarios = lazy_(() => import('./pages/iso27005/Scenarios'))
+const RiskRegisterLive = lazy_(() => import('./pages/reporting/RiskRegisterLive'))
+const PBCList = lazy_(() => import('./pages/fieldwork/PBCList'))
+const FieldworkTracker = lazy_(() => import('./pages/fieldwork/FieldworkTracker'))
+const FindingRegister = lazy_(() => import('./pages/fieldwork/FindingRegister'))
+const WorkpaperIndex = lazy_(() => import('./pages/fieldwork/WorkpaperIndex'))
+const WorkpaperLibrary = lazy_(() => import('./pages/fieldwork/WorkpaperLibrary'))
+const ReportBuilder = lazy_(() => import('./pages/reporting/ReportBuilder'))
+const ManagementReview = lazy_(() => import('./pages/reporting/ManagementReview'))
+const KPIDashboard = lazy_(() => import('./pages/reporting/KPIDashboard'))
+const CAPATracker = lazy_(() => import('./pages/reporting/CAPATracker'))
+const AuditUniverseLive = lazy_(() => import('./pages/reporting/AuditUniverseLive'))
+
+// Named exports need wrapper components
+
+function AppShell() {
   const { user, loading } = useAuth()
-  if (loading) return <Spinner full />
-  if (!user)   return <Navigate to="/auth" replace />
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  if (loading) return (
+    <div className="min-h-screen bg-navy-950 flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-10 h-10 border-2 border-amber-audit border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="text-xs text-steel-400">Loading AuditIQ...</div>
+      </div>
+    </div>
+  )
+
+  if (!user) return <AuthPage />
+
   return (
     <ProgrammeProvider>
-      <AppShell>
-        <Suspense fallback={<Spinner full />}>
-          <Routes>
-            <Route path="/dashboard"            element={<Dashboard />} />
-            <Route path="/programmes"           element={<Programmes />} />
-            <Route path="/settings"             element={<Settings />} />
-            <Route path="/team"                 element={<Team />} />
-            <Route path="/plan/scoping"         element={<Scoping />} />
-            <Route path="/plan/rcm"             element={<RCM />} />
-            <Route path="/plan/workpapers"      element={<WorkpaperSetup />} />
-            <Route path="/plan/entities"        element={<MultiEntity />} />
-            <Route path="/execute/ipe"          element={<IPEValidation />} />
-            <Route path="/execute/testing"      element={<SampleTesting />} />
-            <Route path="/execute/je-testing"   element={<JETesting />} />
-            <Route path="/execute/findings"     element={<Findings />} />
-            <Route path="/execute/deficiencies" element={<DeficiencyLog />} />
-            <Route path="/execute/sod"          element={<SoDMatrix />} />
-            <Route path="/manage/remediation"   element={<Remediation />} />
-            <Route path="/manage/vendors"       element={<VendorSOC1 />} />
-            <Route path="/manage/reliance"      element={<Reliance />} />
-            <Route path="/manage/assertions"    element={<Assertions />} />
-            <Route path="/manage/standards"     element={<Standards />} />
-            <Route path="/manage/reports"       element={<Reports />} />
-            <Route path="/reference/frameworks" element={<Frameworks />} />
-            <Route path="/reference/cloud-itgc" element={<CloudITGC />} />
-            <Route path="/reference/erp-guides" element={<ERPGuides />} />
-            <Route path="/reference/sector"     element={<SectorControls />} />
-            <Route path="/reference/interview"  element={<InterviewPrep />} />
-            <Route path="*"                     element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Suspense>
-      </AppShell>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <Header onMenuClick={() => setMobileOpen(true)} />
+          <main className="flex-1 overflow-y-auto p-4 md:p-6" id="main-content">
+            <Breadcrumb />
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/wiki" element={<Wiki />} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/team" element={<TeamMembers />} />
+              <Route path="/iso27000" element={<ISO27000 />} />
+              <Route path="/iso19011" element={<Navigate to="/iso19011/clause4" replace />} />
+              <Route path="/iso19011/clause4" element={<Clause4 />} />
+              <Route path="/iso19011/clause5" element={<Clause5 />} />
+              <Route path="/iso19011/clause6-initiation" element={<Clause6Initiation />} />
+              <Route path="/iso19011/clause6-preparation" element={<Clause6Preparation />} />
+              <Route path="/iso19011/tod" element={<TOD />} />
+              <Route path="/iso19011/toi" element={<TOI />} />
+              <Route path="/iso19011/toe" element={<TOE />} />
+              <Route path="/iso19011/findings" element={<Findings />} />
+              <Route path="/iso19011/meetings" element={<Meetings />} />
+              <Route path="/iso19011/reporting" element={<Clause65Reporting />} />
+              <Route path="/iso19011/clause7" element={<Clause7 />} />
+              <Route path="/iso19011/annexa" element={<AnnexA />} />
+              <Route path="/iso27001" element={<Navigate to="/iso27001/clause4" replace />} />
+              <Route path="/iso27001/clause4" element={<ISO27001Clause4 />} />
+              <Route path="/iso27001/clause5" element={<ISO27001Clause5 />} />
+              <Route path="/iso27001/clause6" element={<ISO27001Clause6 />} />
+              <Route path="/iso27001/clause7" element={<ISO27001Clause7 />} />
+              <Route path="/iso27001/soa" element={<ISO27001SoA />} />
+              <Route path="/iso27001/clause8" element={<ISO27001Clause8 />} />
+              <Route path="/iso27001/clause9" element={<ISO27001Clause9 />} />
+              <Route path="/iso27001/clause10" element={<ISO27001Clause10 />} />
+              <Route path="/isms" element={<ISMSLanding />} />
+              <Route path="/isms/implement" element={<ISMSImplement />} />
+              <Route path="/isms/history" element={<ISMSHistory />} />
+              <Route path="/isms/scope" element={<ISMSScopeRegister />} />
+              <Route path="/isms/rcm" element={<ISMSRCM />} />
+              <Route path="/isms/suppliers" element={<ISMSSupplierAudit />} />
+              <Route path="/isms/gap-analysis" element={<ISMSGapAnalysis />} />
+              <Route path="/isms/management-system" element={<ISMSManagementSystem />} />
+              <Route path="/fieldwork/surveillance-audit" element={<ISMSSurveillanceAudit />} />
+              <Route path="/programmes" element={<ProgrammesOverview />} />
+              <Route path="/fieldwork/isms-audit" element={<ISMSAudit />} />
+              <Route path="/iso27002" element={<Navigate to="/iso27002/organizational" replace />} />
+              <Route path="/iso27002/organizational" element={<Organizational />} />
+              <Route path="/iso27002/people" element={<People />} />
+              <Route path="/iso27002/physical" element={<Physical />} />
+              <Route path="/iso27002/technological" element={<Technological />} />
+              <Route path="/iso27002/netnew" element={<NetNew />} />
+              <Route path="/iso27005" element={<Navigate to="/iso27005/assets" replace />} />
+              <Route path="/iso27005/assets" element={<Assets />} />
+              <Route path="/iso27005/register" element={<RiskRegister />} />
+              <Route path="/iso27005/live-register" element={<RiskRegisterLive />} />
+              <Route path="/iso27005/rtp" element={<RTP />} />
+              <Route path="/iso27005/scenarios" element={<Scenarios />} />
+              <Route path="/fieldwork" element={<Navigate to="/fieldwork/tracker" replace />} />
+              <Route path="/fieldwork/pbc" element={<PBCList />} />
+              <Route path="/fieldwork/tracker" element={<FieldworkTracker />} />
+              <Route path="/fieldwork/findings" element={<FindingRegister />} />
+              <Route path="/fieldwork/workpapers" element={<WorkpaperIndex />} />
+              <Route path="/fieldwork/library" element={<WorkpaperLibrary />} />
+              <Route path="/reporting" element={<Navigate to="/reporting/builder" replace />} />
+              <Route path="/reporting/builder" element={<ReportBuilder />} />
+              <Route path="/reporting/management-review" element={<ManagementReview />} />
+              <Route path="/reporting/kpi" element={<KPIDashboard />} />
+              <Route path="/reporting/capa" element={<CAPATracker />} />
+              <Route path="/reporting/universe" element={<AuditUniverseLive />} />
+              <Route path="*" element={<ComingSoon />} />
+            </Routes>
+          </main>
+        </div>
+      </div>
     </ProgrammeProvider>
   )
 }
 
 export default function App() {
   return (
-    <ToastProvider>
+    <BrowserRouter>
       <ThemeProvider>
+      <ToastProvider>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Suspense fallback={<Spinner full />}><AuthPage /></Suspense>} />
-              <Route path="/*"   element={<Protected />} />
-            </Routes>
-          </BrowserRouter>
+          <AppShell />
         </AuthProvider>
-      </ThemeProvider>
-    </ToastProvider>
+      </ToastProvider>
+    </ThemeProvider>
+    </BrowserRouter>
   )
 }
